@@ -39,7 +39,6 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
-        /* Custom Modern Dropdown Menu Styling */
         .custom-dropdown-menu {
             display: none;
             position: absolute;
@@ -147,7 +146,6 @@
                 </h2>
                 <form id="songForm" onsubmit="handleUploadSong(event)" class="space-y-4">
                     
-                    <!-- Prominent File Browser Box -->
                     <div>
                         <label class="block text-xs font-medium text-slate-600 mb-1.5">Select MP3 Audio File (.mp3)</label>
                         <label for="audioFile" class="flex flex-col items-center justify-center w-full h-28 border-2 border-brand-300 border-dashed rounded-xl cursor-pointer bg-brand-50/50 hover:bg-brand-50 transition">
@@ -166,7 +164,6 @@
                             class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500">
                     </div>
                     
-                    <!-- Artist / Singer with Custom Beautiful Dropdown -->
                     <div class="relative">
                         <label class="block text-xs font-medium text-slate-600 mb-1.5">Artist / Singer (តារាចម្រៀង - Search or Select)</label>
                         <div class="relative">
@@ -193,13 +190,12 @@
                                 <option value="ចម្រៀងប្រពៃណី">ចម្រៀងប្រពៃណី (Traditional)</option>
                             </select>
                         </div>
-                        <!-- R2 Folder Name with Custom Beautiful Dropdown -->
                         <div class="relative">
                             <label class="block text-xs font-medium text-slate-600 mb-1.5">R2 Folder Name</label>
                             <div class="relative">
                                 <input type="text" id="songFolder" required placeholder="Artist folder..." 
                                     class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 pr-10 text-sm text-slate-800 focus:outline-none focus:border-brand-500"
-                                    onfocus="showFolderDropdown()" autocomplete="off">
+                                    oninput="updateSingerImageUrl(this.value)" onfocus="showFolderDropdown()" autocomplete="off">
                                 <div onclick="toggleFolderDropdown()" class="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-slate-400 hover:text-brand-600 px-1">
                                     <i class="fa-solid fa-chevron-down text-xs"></i>
                                 </div>
@@ -208,13 +204,11 @@
                         </div>
                     </div>
 
-                    <!-- Album Art / Singer Image -->
                     <div>
                         <label class="block text-xs font-medium text-slate-600 mb-1.5">Album Art / Singer Image</label>
                         <div class="space-y-2">
                             <div class="flex items-center gap-2">
-                                <input type="text" id="songImage" placeholder="https://... or upload image" 
-                                    value="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500"
+                                <input type="text" id="songImage" placeholder="Auto-fills from singers/{folder}/profile.jpg or paste URL" 
                                     class="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-brand-500">
                                 <label for="imageFile" class="cursor-pointer px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-medium rounded-xl transition flex items-center gap-1.5 whitespace-nowrap">
                                     <i class="fa-solid fa-upload"></i> Upload Image
@@ -235,20 +229,31 @@
         <!-- Right Column: Songs List & JSON Preview -->
         <div class="lg:col-span-7 flex flex-col space-y-6">
             
-            <!-- Songs List Table Card -->
+            <!-- Songs List Table Card with Search & 10-Item Pagination -->
             <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex-1 flex flex-col">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2">
-                        <i class="fa-solid fa-list-music text-brand-600"></i> R2 Songs Catalog 
-                        <span id="songCountBadge" class="ml-2 text-xs px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-700 border border-brand-200 font-mono">0</span>
-                    </h2>
-                    <button onclick="clearAllSongs()" class="text-xs text-rose-600 hover:text-rose-700 transition flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-50 border border-rose-200">
-                        <i class="fa-solid fa-trash-can"></i> Clear All
-                    </button>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-list-music text-brand-600"></i> R2 Songs Catalog 
+                            <span id="songCountBadge" class="ml-1 text-xs px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-700 border border-brand-200 font-mono">0</span>
+                        </h2>
+                    </div>
+
+                    <!-- Search Input & Clear All -->
+                    <div class="flex items-center gap-2">
+                        <div class="relative">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" id="catalogSearchInput" placeholder="Filter songs..." oninput="onSearchChanged(this.value)"
+                                class="bg-slate-50 border border-slate-300 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-brand-500 w-44">
+                        </div>
+                        <button onclick="clearAllSongs()" class="text-xs text-rose-600 hover:text-rose-700 transition flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-rose-50 border border-rose-200">
+                            <i class="fa-solid fa-trash-can"></i> Clear All
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Table Container -->
-                <div class="flex-1 overflow-x-auto rounded-xl border border-slate-200 bg-slate-50 max-h-[350px]">
+                <!-- Table Container with lazy loaded images -->
+                <div class="flex-1 overflow-x-auto rounded-xl border border-slate-200 bg-slate-50 min-h-[380px]">
                     <table class="w-full text-left text-sm text-slate-700">
                         <thead class="bg-slate-100 text-xs uppercase text-slate-500 sticky top-0 border-b border-slate-200">
                             <tr>
@@ -259,9 +264,23 @@
                             </tr>
                         </thead>
                         <tbody id="songsTableBody" class="divide-y divide-slate-200">
-                            <!-- Populated dynamically -->
+                            <!-- Populated dynamically (10 items per page) -->
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Pagination Footer (Prev / Next Buttons) -->
+                <div class="flex items-center justify-between pt-3 border-t border-slate-100 mt-2 text-xs text-slate-500">
+                    <span id="pageInfoText">Showing 0 to 0 of 0</span>
+                    <div class="flex items-center gap-1">
+                        <button onclick="changePage(-1)" id="prevPageBtn" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">
+                            <i class="fa-solid fa-chevron-left"></i> Prev
+                        </button>
+                        <span id="pageBadge" class="px-2 font-mono font-medium text-slate-700">1</span>
+                        <button onclick="changePage(1)" id="nextPageBtn" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">
+                            Next <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -274,7 +293,7 @@
                     <div id="statusMessage" class="text-xs font-medium text-emerald-600"></div>
                 </div>
                 <div class="relative">
-                    <pre id="jsonPreview" class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-xs font-mono text-brand-300 h-44 overflow-y-auto selection:bg-brand-500 selection:text-white">[]</pre>
+                    <pre id="jsonPreview" class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-xs font-mono text-brand-300 h-36 overflow-y-auto selection:bg-brand-500 selection:text-white">[]</pre>
                 </div>
             </div>
 
@@ -283,13 +302,17 @@
 
     <script>
         let songsCatalog = [];
+        let filteredCatalog = [];
         let uploadedImageFile = null;
+
+        // Pagination State
+        let currentPage = 1;
+        const pageSize = 10;
 
         window.addEventListener('DOMContentLoaded', () => {
             loadCredentials();
             syncCatalogFromR2();
 
-            // Close custom dropdowns when clicking outside
             document.addEventListener('click', (e) => {
                 if (!e.target.closest('#songSinger') && !e.target.closest('#singerDropdownMenu')) {
                     document.getElementById('singerDropdownMenu').style.display = 'none';
@@ -317,7 +340,6 @@
             if (localStorage.getItem('r2_bucket_name')) document.getElementById('r2BucketName').value = localStorage.getItem('r2_bucket_name');
         }
 
-        // Clean string: remove quotes, apostrophes, commas, and extension (.mp3)
         function cleanString(str) {
             if (!str) return '';
             return str
@@ -327,7 +349,6 @@
                 .trim();
         }
 
-        // Smart filename parser for Khmer and standard naming conventions
         function handleFileSelected(input) {
             const label = document.getElementById('fileLabelText');
             if (input.files && input.files[0]) {
@@ -363,57 +384,39 @@
             }
         }
 
-        // Auto-fill image and folder if singer exists in catalog
+        function updateSingerImageUrl(singerOrFolder) {
+            const name = (singerOrFolder || document.getElementById('songSinger').value || document.getElementById('songFolder').value).trim();
+            if (!name) return;
+
+            const baseUrl = document.getElementById('r2BaseUrl').value.trim().replace(/\/+$/, '');
+            const imageInput = document.getElementById('songImage');
+
+            // 1. Check if this singer already has a custom image in the current songs.json catalog
+            const lower = name.toLowerCase();
+            const existing = songsCatalog.find(s => s.singer && s.singer.trim().toLowerCase() === lower && s.image && !s.image.includes('unsplash.com'));
+
+            if (existing && existing.image) {
+                imageInput.value = existing.image;
+            } else if (baseUrl) {
+                // 2. Automatically point to the R2 singer profile image: singers/{folder}/profile.jpg
+                imageInput.value = `${baseUrl}/singers/${encodeURIComponent(name)}/profile.jpg`;
+            }
+        }
+
         function onSingerInputChanged(input) {
             const singerName = input.value.trim();
-            if (singerName) {
-                applySingerProfile(singerName);
-            }
+            if (singerName) applySingerProfile(singerName);
             renderSingerDropdown(singerName);
         }
 
-       function applySingerProfile(singerName) {
-            const trimmedName = singerName.trim();
-            if (!trimmedName) return;
+        function applySingerProfile(singerName) {
+            const trimmed = (singerName || '').trim();
+            if (!trimmed) return;
 
-            const lowerSinger = trimmedName.toLowerCase();
             const folderInput = document.getElementById('songFolder');
-            const imageInput = document.getElementById('songImage');
-            const baseUrl = document.getElementById('r2BaseUrl').value.trim().replace(/\/+$/, '');
+            folderInput.value = trimmed;
 
-            // 1. Look for an existing song by this artist in the active catalog
-            const existingSong = songsCatalog.find(s => s.singer && s.singer.trim().toLowerCase() === lowerSinger);
-
-            let folderName = trimmedName;
-
-            if (existingSong) {
-                // Infer folder name from existing song URL if present
-                if (existingSong.url && existingSong.url.includes('/')) {
-                    const parts = existingSong.url.split('/');
-                    if (parts.length >= 2 && parts[0].trim()) {
-                        folderName = parts[0].trim();
-                    }
-                }
-                
-                // If the existing song has a valid image, use it
-                if (existingSong.image && !existingSong.image.includes('unsplash.com')) {
-                    imageInput.value = existingSong.image;
-                } else if (baseUrl) {
-                    // Fall back to the standardized R2 profile image path
-                    imageInput.value = `${baseUrl}/singers/${encodeURIComponent(folderName)}/profile.jpg`;
-                }
-            } else {
-                // If not found in catalog, check if an existing folder matches
-                const matchingFolder = getUniqueFolders().find(f => f.trim().toLowerCase() === lowerSinger);
-                if (matchingFolder) {
-                    folderName = matchingFolder;
-                }
-                if (baseUrl) {
-                    imageInput.value = `${baseUrl}/singers/${encodeURIComponent(folderName)}/profile.jpg`;
-                }
-            }
-
-            folderInput.value = folderName;
+            updateSingerImageUrl(trimmed);
         }
 
         function handleImageFileSelected(input) {
@@ -456,6 +459,8 @@
                     const data = await response.json();
                     if (Array.isArray(data)) {
                         songsCatalog = data;
+                        filteredCatalog = [...songsCatalog];
+                        currentPage = 1;
                         updateDropdownLists();
                         renderTable();
                         showStatus('Successfully synced songs.json from R2!', 'emerald');
@@ -467,6 +472,27 @@
                 console.log('Could not fetch remote songs.json:', err);
                 showStatus('Offline mode / empty catalog.', 'slate');
             }
+        }
+
+        function onSearchChanged(query) {
+            const q = query.trim().toLowerCase();
+            if (!q) {
+                filteredCatalog = [...songsCatalog];
+            } else {
+                filteredCatalog = songsCatalog.filter(s => 
+                    (s.title && s.title.toLowerCase().includes(q)) ||
+                    (s.singer && s.singer.toLowerCase().includes(q)) ||
+                    (s.category && s.category.toLowerCase().includes(q))
+                );
+            }
+            currentPage = 1;
+            renderTable();
+        }
+
+        function changePage(direction) {
+            const maxPage = Math.ceil(filteredCatalog.length / pageSize) || 1;
+            currentPage = Math.max(1, Math.min(currentPage + direction, maxPage));
+            renderTable();
         }
 
         function updateDropdownLists() {
@@ -498,12 +524,8 @@
 
         function toggleSingerDropdown() {
             const menu = document.getElementById('singerDropdownMenu');
-            if (menu.style.display === 'block') {
-                menu.style.display = 'none';
-            } else {
-                renderSingerDropdown('');
-                menu.style.display = 'block';
-            }
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+            if (menu.style.display === 'block') renderSingerDropdown('');
         }
 
         function renderSingerDropdown(filter) {
@@ -536,12 +558,8 @@
 
         function toggleFolderDropdown() {
             const menu = document.getElementById('folderDropdownMenu');
-            if (menu.style.display === 'block') {
-                menu.style.display = 'none';
-            } else {
-                renderFolderDropdown('');
-                menu.style.display = 'block';
-            }
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+            if (menu.style.display === 'block') renderFolderDropdown('');
         }
 
         function renderFolderDropdown(filter) {
@@ -564,6 +582,7 @@
         function selectFolder(name) {
             document.getElementById('songFolder').value = name;
             document.getElementById('folderDropdownMenu').style.display = 'none';
+            updateSingerImageUrl(name);
         }
 
         async function handleUploadSong(e) {
@@ -587,8 +606,7 @@
             );
 
             if (titleExists) {
-                alert(`⚠️ Upload Blocked: The song title "${title}" already exists in your catalog! Duplicate songs are not allowed.`);
-                showStatus('Duplicate song title detected. Upload cancelled.', 'rose');
+                alert(`⚠️ Upload Blocked: The song title "${title}" already exists in your catalog!`);
                 return;
             }
 
@@ -603,7 +621,6 @@
             uploadBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Uploading to R2...`;
 
             try {
-                // 1. Upload singer profile image if selected from PC
                 if (uploadedImageFile) {
                     const imgPath = `singers/${folder}/profile.jpg`;
                     await s3.putObject({
@@ -615,7 +632,6 @@
                     image = `${baseUrl}/${imgPath}`;
                 }
 
-                // 2. Upload MP3 audio file into artist folder
                 const filename = file.name;
                 const r2Path = `${folder}/${filename}`;
 
@@ -630,25 +646,26 @@
                     title,
                     singer,
                     category,
-                    image: image && !image.startsWith('[Selected') ? image : 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500',
+                    image: image && !image.startsWith('[Selected') ? image : `${baseUrl}/singers/${encodeURIComponent(folder)}/profile.jpg`,
                     url: r2Path
                 };
 
                 songsCatalog.unshift(newSong);
+                filteredCatalog = [...songsCatalog];
+                currentPage = 1;
+
                 updateDropdownLists();
                 renderTable();
                 
-                // Reset form inputs
                 fileInput.value = '';
                 document.getElementById('fileLabelText').textContent = 'Click to browse or drop MP3 file here';
                 document.getElementById('fileLabelText').className = "text-xs text-slate-700 font-semibold mb-0.5";
-                
                 document.getElementById('songTitle').value = '';
                 document.getElementById('songSinger').value = '';
-                document.getElementById('songImage').value = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500';
+                document.getElementById('songImage').value = '';
                 uploadedImageFile = null;
 
-                showStatus('MP3 & Singer Image uploaded successfully to R2!', 'emerald');
+                showStatus('MP3 uploaded successfully to R2! Click "Publish to R2" to save live catalog.', 'emerald');
             } catch (err) {
                 alert('R2 Upload Failed: ' + err.message);
                 showStatus('Upload failed!', 'rose');
@@ -669,14 +686,12 @@
 
             const jsonString = JSON.stringify(songsCatalog, null, 2);
 
-            const params = {
+            s3.upload({
                 Bucket: bucketName,
                 Key: 'songs.json',
                 Body: jsonString,
                 ContentType: 'application/json'
-            };
-
-            s3.upload(params, function(err, data) {
+            }, function(err, data) {
                 publishBtn.disabled = false;
                 publishBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Publish to R2`;
 
@@ -687,23 +702,20 @@
                 }
 
                 showStatus('songs.json published to R2 successfully!', 'emerald');
-                alert('Success! songs.json has been published to Cloudflare R2.');
+                alert('Success! songs.json published to Cloudflare R2.');
             });
         }
 
-        async function deleteSong(index) {
-            const song = songsCatalog[index];
+        async function deleteSong(indexInFiltered) {
+            const song = filteredCatalog[indexInFiltered];
             if (!song) return;
 
-            if (!confirm(`Are you sure you want to delete "${song.title}"? This will delete the MP3 file from Cloudflare R2 and update your catalog.`)) {
+            if (!confirm(`Are you sure you want to delete "${song.title}" from R2?`)) {
                 return;
             }
 
             const s3 = getS3Client();
-            if (!s3) {
-                alert('Please configure your R2 credentials first.');
-                return;
-            }
+            if (!s3) return;
 
             const bucketName = document.getElementById('r2BucketName').value.trim();
             const r2Path = song.url.startsWith('http') 
@@ -712,33 +724,31 @@
 
             showStatus('Deleting MP3 from R2...', 'blue');
 
-            const params = {
+            s3.deleteObject({
                 Bucket: bucketName,
                 Key: r2Path
-            };
-
-            s3.deleteObject(params, async function(err, data) {
+            }, async function(err, data) {
                 if (err) {
                     alert('Failed to delete file from R2: ' + err.message);
                     showStatus('R2 delete failed', 'rose');
                     return;
                 }
 
-                songsCatalog.splice(index, 1);
+                const rawIdx = songsCatalog.indexOf(song);
+                if (rawIdx !== -1) songsCatalog.splice(rawIdx, 1);
+                filteredCatalog.splice(indexInFiltered, 1);
+
                 updateDropdownLists();
                 renderTable();
 
                 const jsonString = JSON.stringify(songsCatalog, null, 2);
-                const publishParams = {
+                s3.putObject({
                     Bucket: bucketName,
                     Key: 'songs.json',
                     Body: jsonString,
                     ContentType: 'application/json'
-                };
-
-                s3.putObject(publishParams, function(pubErr, pubData) {
+                }, function(pubErr, pubData) {
                     if (pubErr) {
-                        alert('MP3 deleted, but failed to update songs.json: ' + pubErr.message);
                         showStatus('Catalog sync failed', 'rose');
                         return;
                     }
@@ -750,6 +760,8 @@
         function clearAllSongs() {
             if (confirm('Are you sure you want to clear all songs from the catalog?')) {
                 songsCatalog = [];
+                filteredCatalog = [];
+                currentPage = 1;
                 updateDropdownLists();
                 renderTable();
             }
@@ -759,25 +771,47 @@
             const tbody = document.getElementById('songsTableBody');
             const badge = document.getElementById('songCountBadge');
             const jsonPreview = document.getElementById('jsonPreview');
+            const pageInfoText = document.getElementById('pageInfoText');
+            const pageBadge = document.getElementById('pageBadge');
+            const prevBtn = document.getElementById('prevPageBtn');
+            const nextBtn = document.getElementById('nextPageBtn');
 
             badge.textContent = songsCatalog.length;
             jsonPreview.textContent = JSON.stringify(songsCatalog, null, 2);
 
-            if (songsCatalog.length === 0) {
+            const total = filteredCatalog.length;
+            const maxPage = Math.ceil(total / pageSize) || 1;
+            currentPage = Math.max(1, Math.min(currentPage, maxPage));
+
+            const startIdx = (currentPage - 1) * pageSize;
+            const endIdx = Math.min(startIdx + pageSize, total);
+            const pageItems = filteredCatalog.slice(startIdx, endIdx);
+
+            pageInfoText.textContent = total === 0 
+                ? 'Showing 0 of 0' 
+                : `Showing ${startIdx + 1}–${endIdx} of ${total}`;
+            pageBadge.textContent = `${currentPage} / ${maxPage}`;
+
+            prevBtn.disabled = currentPage <= 1;
+            nextBtn.disabled = currentPage >= maxPage;
+
+            if (pageItems.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="4" class="px-4 py-8 text-center text-slate-400 text-xs">
-                            No songs in catalog yet. Upload an MP3 and publish to R2.
+                        <td colspan="4" class="px-4 py-10 text-center text-slate-400 text-xs">
+                            ${songsCatalog.length === 0 ? 'No songs in catalog yet. Upload an MP3 and publish to R2.' : 'No matching songs found.'}
                         </td>
                     </tr>
                 `;
                 return;
             }
 
-            tbody.innerHTML = songsCatalog.map((song, idx) => `
+            tbody.innerHTML = pageItems.map((song, i) => {
+                const actualIndex = startIdx + i;
+                return `
                 <tr class="hover:bg-slate-100/80 transition">
                     <td class="px-4 py-3 flex items-center gap-3">
-                        <img src="${song.image}" onerror="this.src='https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500'" class="w-9 h-9 rounded-lg object-cover bg-slate-200" />
+                        <img loading="lazy" src="${song.image}" onerror="this.src='https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500'" class="w-9 h-9 rounded-lg object-cover bg-slate-200" />
                         <div>
                             <div class="font-semibold text-slate-900 text-xs">${song.title}</div>
                             <div class="text-[11px] text-slate-500">${song.singer}</div>
@@ -790,12 +824,12 @@
                         ${song.url}
                     </td>
                     <td class="px-4 py-3 text-right">
-                        <button onclick="deleteSong(${idx})" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition" title="Delete Song">
+                        <button onclick="deleteSong(${actualIndex})" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition" title="Delete Song">
                             <i class="fa-solid fa-trash-can text-xs"></i>
                         </button>
                     </td>
                 </tr>
-            `).join('');
+            `}).join('');
         }
 
         function showStatus(msg, color) {
