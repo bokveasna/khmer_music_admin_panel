@@ -372,30 +372,48 @@
             renderSingerDropdown(singerName);
         }
 
-        function applySingerProfile(singerName) {
-            const lowerSinger = singerName.toLowerCase();
-            const existingSong = songsCatalog.find(s => s.singer && s.singer.toLowerCase() === lowerSinger);
-            
+       function applySingerProfile(singerName) {
+            const trimmedName = singerName.trim();
+            if (!trimmedName) return;
+
+            const lowerSinger = trimmedName.toLowerCase();
             const folderInput = document.getElementById('songFolder');
             const imageInput = document.getElementById('songImage');
+            const baseUrl = document.getElementById('r2BaseUrl').value.trim().replace(/\/+$/, '');
+
+            // 1. Look for an existing song by this artist in the active catalog
+            const existingSong = songsCatalog.find(s => s.singer && s.singer.trim().toLowerCase() === lowerSinger);
+
+            let folderName = trimmedName;
 
             if (existingSong) {
-                if (existingSong.image) {
-                    imageInput.value = existingSong.image;
-                }
+                // Infer folder name from existing song URL if present
                 if (existingSong.url && existingSong.url.includes('/')) {
                     const parts = existingSong.url.split('/');
-                    if (parts.length >= 2) {
-                        folderInput.value = parts[0]; 
-                    } else {
-                        folderInput.value = singerName;
+                    if (parts.length >= 2 && parts[0].trim()) {
+                        folderName = parts[0].trim();
                     }
-                } else {
-                    folderInput.value = singerName;
+                }
+                
+                // If the existing song has a valid image, use it
+                if (existingSong.image && !existingSong.image.includes('unsplash.com')) {
+                    imageInput.value = existingSong.image;
+                } else if (baseUrl) {
+                    // Fall back to the standardized R2 profile image path
+                    imageInput.value = `${baseUrl}/singers/${encodeURIComponent(folderName)}/profile.jpg`;
                 }
             } else {
-                folderInput.value = singerName;
+                // If not found in catalog, check if an existing folder matches
+                const matchingFolder = getUniqueFolders().find(f => f.trim().toLowerCase() === lowerSinger);
+                if (matchingFolder) {
+                    folderName = matchingFolder;
+                }
+                if (baseUrl) {
+                    imageInput.value = `${baseUrl}/singers/${encodeURIComponent(folderName)}/profile.jpg`;
+                }
             }
+
+            folderInput.value = folderName;
         }
 
         function handleImageFileSelected(input) {
