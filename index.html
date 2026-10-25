@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" class="h-full">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -38,7 +39,7 @@
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        
+
         .custom-dropdown-menu {
             display: none;
             position: absolute;
@@ -54,6 +55,7 @@
             z-index: 50;
             padding: 4px;
         }
+
         .custom-dropdown-item {
             padding: 10px 14px;
             font-size: 0.875rem;
@@ -65,6 +67,7 @@
             align-items: center;
             gap: 8px;
         }
+
         .custom-dropdown-item:hover {
             background-color: #f5f3ff;
             color: #7c3aed;
@@ -72,6 +75,7 @@
         }
     </style>
 </head>
+
 <body class="bg-slate-100 text-slate-800 h-full flex flex-col antialiased selection:bg-brand-500 selection:text-white">
 
     <header class="bg-white border-b border-slate-200 sticky top-0 z-50 px-6 py-4 flex items-center justify-between shadow-sm">
@@ -97,10 +101,10 @@
     </header>
 
     <main class="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-y-auto">
-        
+
         <!-- Left Column: Credentials & Upload Form -->
         <div class="lg:col-span-5 space-y-6">
-            
+
             <!-- Credentials Card -->
             <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
                 <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2 mb-4">
@@ -109,29 +113,30 @@
                 <div class="space-y-3">
                     <div>
                         <label class="block text-xs font-medium text-slate-600 mb-1">R2 Public Base URL</label>
-                        <input type="text" id="r2BaseUrl" value="https://pub-4b6e0edb03794226bc7b6bf9b9dc1b4c.r2.dev" 
-                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500">
+                        <input type="text" id="r2BaseUrl" value="https://pub-4b6e0edb03794226bc7b6bf9b9dc1b4c.r2.dev"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500"
+                            oninput="updateSingerImageUrl()">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-slate-600 mb-1">Account ID (Cloudflare Dashboard URL)</label>
-                        <input type="text" id="r2AccountId" placeholder="e.g., a1b2c3d4e5f6..." 
+                        <input type="text" id="r2AccountId" placeholder="e.g., a1b2c3d4e5f6..."
                             class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500">
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
                             <label class="block text-xs font-medium text-slate-600 mb-1">Access Key ID</label>
-                            <input type="password" id="r2AccessKey" placeholder="Access Key" 
+                            <input type="password" id="r2AccessKey" placeholder="Access Key"
                                 class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500">
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-slate-600 mb-1">Secret Access Key</label>
-                            <input type="password" id="r2SecretKey" placeholder="Secret Key" 
+                            <input type="password" id="r2SecretKey" placeholder="Secret Key"
                                 class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500">
                         </div>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-slate-600 mb-1">Bucket Name</label>
-                        <input type="text" id="r2BucketName" value="app-music-bucket" 
+                        <input type="text" id="r2BucketName" value="app-music-bucket"
                             class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500">
                     </div>
                     <button onclick="saveCredentials()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
@@ -145,7 +150,7 @@
                     <i class="fa-solid fa-circle-plus text-brand-600"></i> Upload New Song to R2
                 </h2>
                 <form id="songForm" onsubmit="handleUploadSong(event)" class="space-y-4">
-                    
+
                     <div>
                         <label class="block text-xs font-medium text-slate-600 mb-1.5">Select MP3 Audio File (.mp3)</label>
                         <label for="audioFile" class="flex flex-col items-center justify-center w-full h-28 border-2 border-brand-300 border-dashed rounded-xl cursor-pointer bg-brand-50/50 hover:bg-brand-50 transition">
@@ -160,14 +165,14 @@
 
                     <div>
                         <label class="block text-xs font-medium text-slate-600 mb-1.5">Song Title (ចំណងជើងបទចម្រៀង)</label>
-                        <input type="text" id="songTitle" required placeholder="Clean song title..." 
+                        <input type="text" id="songTitle" required placeholder="Clean song title..."
                             class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500">
                     </div>
-                    
+
                     <div class="relative">
                         <label class="block text-xs font-medium text-slate-600 mb-1.5">Artist / Singer (តារាចម្រៀង - Search or Select)</label>
                         <div class="relative">
-                            <input type="text" id="songSinger" required placeholder="Type or select artist..." 
+                            <input type="text" id="songSinger" required placeholder="Type or select artist..."
                                 class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 pr-10 text-sm text-slate-800 focus:outline-none focus:border-brand-500"
                                 oninput="onSingerInputChanged(this)" onfocus="showSingerDropdown()" autocomplete="off">
                             <div onclick="toggleSingerDropdown()" class="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-slate-400 hover:text-brand-600 px-1">
@@ -193,7 +198,7 @@
                         <div class="relative">
                             <label class="block text-xs font-medium text-slate-600 mb-1.5">R2 Folder Name</label>
                             <div class="relative">
-                                <input type="text" id="songFolder" required placeholder="Artist folder..." 
+                                <input type="text" id="songFolder" required placeholder="Artist folder..."
                                     class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 pr-10 text-sm text-slate-800 focus:outline-none focus:border-brand-500"
                                     oninput="updateSingerImageUrl(this.value)" onfocus="showFolderDropdown()" autocomplete="off">
                                 <div onclick="toggleFolderDropdown()" class="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-slate-400 hover:text-brand-600 px-1">
@@ -208,14 +213,21 @@
                         <label class="block text-xs font-medium text-slate-600 mb-1.5">Album Art / Singer Image</label>
                         <div class="space-y-2">
                             <div class="flex items-center gap-2">
-                                <input type="text" id="songImage" placeholder="Auto-fills from singers/{folder}/profile.jpg or paste URL" 
+                                <input type="text" id="songImage" oninput="refreshImagePreview(this.value)" placeholder="Auto-fills from singers/{folder}/profile.jpg"
                                     class="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-brand-500">
                                 <label for="imageFile" class="cursor-pointer px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-medium rounded-xl transition flex items-center gap-1.5 whitespace-nowrap">
                                     <i class="fa-solid fa-upload"></i> Upload Image
                                 </label>
                                 <input type="file" id="imageFile" accept="image/*" class="hidden" onchange="handleImageFileSelected(this)">
                             </div>
-                            <p class="text-[10px] text-slate-400">Auto-fills if singer exists. Uploaded images are stored in `singers/{folder}/profile.jpg`.</p>
+                            <!-- Live Thumbnail Preview Badge -->
+                            <div id="imagePreviewContainer" class="flex items-center gap-2.5 p-2 bg-slate-50 border border-slate-200 rounded-xl">
+                                <img id="imagePreviewThumb" src="" alt="Cover Preview" class="w-10 h-10 rounded-lg object-cover bg-slate-200 border border-slate-300 shrink-0" onerror="handleImageError(this)">
+                                <div class="overflow-hidden">
+                                    <p class="text-[11px] font-semibold text-slate-700 truncate" id="imagePreviewStatus">No image loaded</p>
+                                    <p class="text-[9px] text-slate-400 truncate" id="imagePreviewUrlText">Select an artist or enter folder name</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -228,18 +240,16 @@
 
         <!-- Right Column: Songs List & JSON Preview -->
         <div class="lg:col-span-7 flex flex-col space-y-6">
-            
-            <!-- Songs List Table Card with Search & 10-Item Pagination -->
+
             <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex-1 flex flex-col">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                     <div class="flex items-center gap-2">
                         <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2">
-                            <i class="fa-solid fa-list-music text-brand-600"></i> R2 Songs Catalog 
+                            <i class="fa-solid fa-list-music text-brand-600"></i> R2 Songs Catalog
                             <span id="songCountBadge" class="ml-1 text-xs px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-700 border border-brand-200 font-mono">0</span>
                         </h2>
                     </div>
 
-                    <!-- Search Input & Clear All -->
                     <div class="flex items-center gap-2">
                         <div class="relative">
                             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
@@ -252,7 +262,6 @@
                     </div>
                 </div>
 
-                <!-- Table Container with lazy loaded images -->
                 <div class="flex-1 overflow-x-auto rounded-xl border border-slate-200 bg-slate-50 min-h-[380px]">
                     <table class="w-full text-left text-sm text-slate-700">
                         <thead class="bg-slate-100 text-xs uppercase text-slate-500 sticky top-0 border-b border-slate-200">
@@ -264,12 +273,11 @@
                             </tr>
                         </thead>
                         <tbody id="songsTableBody" class="divide-y divide-slate-200">
-                            <!-- Populated dynamically (10 items per page) -->
+                            <!-- Populated dynamically -->
                         </tbody>
                     </table>
                 </div>
 
-                <!-- Pagination Footer (Prev / Next Buttons) -->
                 <div class="flex items-center justify-between pt-3 border-t border-slate-100 mt-2 text-xs text-slate-500">
                     <span id="pageInfoText">Showing 0 to 0 of 0</span>
                     <div class="flex items-center gap-1">
@@ -284,7 +292,6 @@
                 </div>
             </div>
 
-            <!-- JSON Output & Status Card -->
             <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col">
                 <div class="flex items-center justify-between mb-3">
                     <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2">
@@ -305,7 +312,17 @@
         let filteredCatalog = [];
         let uploadedImageFile = null;
 
-        // Pagination State
+        // Known singer directory list from R2 bucket
+        const knownFolders = [
+            'ថុល សុភិទិ',
+            'នាង ដាវីន',
+            'ប៉ែន រ៉ន',
+            'ព្រាប សុវត្ថិ',
+            'ម៉ៅ ហាជី',
+            'សុខ ពិសី',
+            'ស៊ីន ស៊ីសាមុត'
+        ];
+
         let currentPage = 1;
         const pageSize = 10;
 
@@ -323,21 +340,109 @@
             });
         });
 
-        function saveCredentials() {
-            localStorage.setItem('r2_base_url', document.getElementById('r2BaseUrl').value);
-            localStorage.setItem('r2_account_id', document.getElementById('r2AccountId').value);
-            localStorage.setItem('r2_access_key', document.getElementById('r2AccessKey').value);
-            localStorage.setItem('r2_secret_key', document.getElementById('r2SecretKey').value);
-            localStorage.setItem('r2_bucket_name', document.getElementById('r2BucketName').value);
-            showStatus('Credentials saved locally!', 'emerald');
+        function handleImageError(img) {
+            img.src = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500';
+            const status = document.getElementById('imagePreviewStatus');
+            status.textContent = "⚠ Image not found at URL";
+            status.className = "text-[11px] font-semibold text-amber-600 truncate";
         }
 
-        function loadCredentials() {
-            if (localStorage.getItem('r2_base_url')) document.getElementById('r2BaseUrl').value = localStorage.getItem('r2_base_url');
-            if (localStorage.getItem('r2_account_id')) document.getElementById('r2AccountId').value = localStorage.getItem('r2_account_id');
-            if (localStorage.getItem('r2_access_key')) document.getElementById('r2AccessKey').value = localStorage.getItem('r2_access_key');
-            if (localStorage.getItem('r2_secret_key')) document.getElementById('r2SecretKey').value = localStorage.getItem('r2_secret_key');
-            if (localStorage.getItem('r2_bucket_name')) document.getElementById('r2BucketName').value = localStorage.getItem('r2_bucket_name');
+        function refreshImagePreview(url) {
+            const thumb = document.getElementById('imagePreviewThumb');
+            const status = document.getElementById('imagePreviewStatus');
+            const urlText = document.getElementById('imagePreviewUrlText');
+
+            if (url && url.startsWith('http')) {
+                thumb.src = url;
+                status.textContent = "✓ Image Attached";
+                status.className = "text-[11px] font-semibold text-emerald-600 truncate";
+                urlText.textContent = url;
+            } else {
+                thumb.src = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500";
+                status.textContent = "No image loaded";
+                status.className = "text-[11px] font-semibold text-slate-700 truncate";
+                urlText.textContent = "Select an artist or enter folder name";
+            }
+        }
+
+        // Resolves singer name or folder to its proper R2 profile.jpg location
+        function updateSingerImageUrl(targetFolder) {
+            const folderVal = (targetFolder || document.getElementById('songFolder').value || document.getElementById('songSinger').value).trim();
+            if (!folderVal) return;
+
+            const baseUrl = document.getElementById('r2BaseUrl').value.trim().replace(/\/+$/, '');
+            const imageInput = document.getElementById('songImage');
+
+            // 1. Look for existing image inside catalog
+            const lower = folderVal.toLowerCase();
+            const existing = songsCatalog.find(s => 
+                (s.singer && s.singer.trim().toLowerCase() === lower) ||
+                (s.url && s.url.toLowerCase().startsWith(lower + '/'))
+            );
+
+            if (existing && existing.image && !existing.image.includes('unsplash.com')) {
+                imageInput.value = existing.image;
+            } else if (baseUrl) {
+                // 2. Direct R2 Path format
+                imageInput.value = `${baseUrl}/singers/${encodeURIComponent(folderVal)}/profile.jpg`;
+            }
+
+            imageInput.scrollLeft = imageInput.scrollWidth;
+            refreshImagePreview(imageInput.value);
+        }
+
+        // Detects singer and sets folder appropriately
+        function applySingerProfile(rawInput) {
+            const input = (rawInput || '').trim();
+            if (!input) return;
+
+            const folderInput = document.getElementById('songFolder');
+            let detectedFolder = '';
+
+            // Match against known folders list first
+            for (let folder of knownFolders) {
+                if (input.includes(folder)) {
+                    detectedFolder = folder;
+                    break;
+                }
+            }
+
+            // Fallback match from existing catalog
+            if (!detectedFolder) {
+                const lower = input.toLowerCase();
+                const existing = songsCatalog.find(s => s.singer && lower.includes(s.singer.toLowerCase()));
+                if (existing && existing.url && existing.url.includes('/')) {
+                    detectedFolder = existing.url.split('/')[0].trim();
+                } else if (existing && existing.singer) {
+                    detectedFolder = existing.singer;
+                }
+            }
+
+            // Otherwise, clean up the singer's name to use as folder
+            if (!detectedFolder) {
+                detectedFolder = cleanString(input);
+            }
+
+            folderInput.value = detectedFolder;
+            updateSingerImageUrl(detectedFolder);
+        }
+
+        function onSingerInputChanged(input) {
+            const singerName = input.value.trim();
+            if (singerName) applySingerProfile(singerName);
+            renderSingerDropdown(singerName);
+        }
+
+        function selectSinger(name) {
+            document.getElementById('songSinger').value = name;
+            document.getElementById('singerDropdownMenu').style.display = 'none';
+            applySingerProfile(name);
+        }
+
+        function selectFolder(name) {
+            document.getElementById('songFolder').value = name;
+            document.getElementById('folderDropdownMenu').style.display = 'none';
+            updateSingerImageUrl(name);
         }
 
         function cleanString(str) {
@@ -360,12 +465,12 @@
                 let title = baseName;
                 let singer = "";
 
-                const separators = [" - ", " – ", " | ", ", "];
+                const separators = [" - ", " – ", " | ", "_", ", "];
                 for (let sep of separators) {
                     if (baseName.includes(sep)) {
                         const parts = baseName.split(sep);
                         title = parts[0].trim();
-                        singer = parts[1].trim();
+                        singer = parts.slice(1).join(" ").trim();
                         break;
                     }
                 }
@@ -384,47 +489,34 @@
             }
         }
 
-        function updateSingerImageUrl(singerOrFolder) {
-            const name = (singerOrFolder || document.getElementById('songSinger').value || document.getElementById('songFolder').value).trim();
-            if (!name) return;
-
-            const baseUrl = document.getElementById('r2BaseUrl').value.trim().replace(/\/+$/, '');
-            const imageInput = document.getElementById('songImage');
-
-            // 1. Check if this singer already has a custom image in the current songs.json catalog
-            const lower = name.toLowerCase();
-            const existing = songsCatalog.find(s => s.singer && s.singer.trim().toLowerCase() === lower && s.image && !s.image.includes('unsplash.com'));
-
-            if (existing && existing.image) {
-                imageInput.value = existing.image;
-            } else if (baseUrl) {
-                // 2. Automatically point to the R2 singer profile image: singers/{folder}/profile.jpg
-                imageInput.value = `${baseUrl}/singers/${encodeURIComponent(name)}/profile.jpg`;
-            }
-        }
-
-        function onSingerInputChanged(input) {
-            const singerName = input.value.trim();
-            if (singerName) applySingerProfile(singerName);
-            renderSingerDropdown(singerName);
-        }
-
-        function applySingerProfile(singerName) {
-            const trimmed = (singerName || '').trim();
-            if (!trimmed) return;
-
-            const folderInput = document.getElementById('songFolder');
-            folderInput.value = trimmed;
-
-            updateSingerImageUrl(trimmed);
-        }
-
         function handleImageFileSelected(input) {
             if (input.files && input.files[0]) {
                 uploadedImageFile = input.files[0];
                 document.getElementById('songImage').value = `[Selected local file: ${uploadedImageFile.name}]`;
+                const thumb = document.getElementById('imagePreviewThumb');
+                thumb.src = URL.createObjectURL(uploadedImageFile);
+                document.getElementById('imagePreviewStatus').textContent = "✓ Local Image Ready";
+                document.getElementById('imagePreviewStatus').className = "text-[11px] font-semibold text-emerald-600 truncate";
+                document.getElementById('imagePreviewUrlText').textContent = uploadedImageFile.name;
                 showStatus('Image file ready for upload!', 'emerald');
             }
+        }
+
+        function saveCredentials() {
+            localStorage.setItem('r2_base_url', document.getElementById('r2BaseUrl').value);
+            localStorage.setItem('r2_account_id', document.getElementById('r2AccountId').value);
+            localStorage.setItem('r2_access_key', document.getElementById('r2AccessKey').value);
+            localStorage.setItem('r2_secret_key', document.getElementById('r2SecretKey').value);
+            localStorage.setItem('r2_bucket_name', document.getElementById('r2BucketName').value);
+            showStatus('Credentials saved locally!', 'emerald');
+        }
+
+        function loadCredentials() {
+            if (localStorage.getItem('r2_base_url')) document.getElementById('r2BaseUrl').value = localStorage.getItem('r2_base_url');
+            if (localStorage.getItem('r2_account_id')) document.getElementById('r2AccountId').value = localStorage.getItem('r2_account_id');
+            if (localStorage.getItem('r2_access_key')) document.getElementById('r2AccessKey').value = localStorage.getItem('r2_access_key');
+            if (localStorage.getItem('r2_secret_key')) document.getElementById('r2SecretKey').value = localStorage.getItem('r2_secret_key');
+            if (localStorage.getItem('r2_bucket_name')) document.getElementById('r2BucketName').value = localStorage.getItem('r2_bucket_name');
         }
 
         function getS3Client() {
@@ -479,7 +571,7 @@
             if (!q) {
                 filteredCatalog = [...songsCatalog];
             } else {
-                filteredCatalog = songsCatalog.filter(s => 
+                filteredCatalog = songsCatalog.filter(s =>
                     (s.title && s.title.toLowerCase().includes(q)) ||
                     (s.singer && s.singer.toLowerCase().includes(q)) ||
                     (s.category && s.category.toLowerCase().includes(q))
@@ -501,13 +593,13 @@
         }
 
         function getUniqueSingers() {
-            const set = new Set();
+            const set = new Set(knownFolders);
             songsCatalog.forEach(s => { if (s.singer) set.add(s.singer); });
             return Array.from(set);
         }
 
         function getUniqueFolders() {
-            const set = new Set();
+            const set = new Set(knownFolders);
             songsCatalog.forEach(s => {
                 if (s.url && s.url.includes('/')) {
                     const parts = s.url.split('/');
@@ -545,12 +637,6 @@
             menu.style.display = 'block';
         }
 
-        function selectSinger(name) {
-            document.getElementById('songSinger').value = name;
-            document.getElementById('singerDropdownMenu').style.display = 'none';
-            applySingerProfile(name);
-        }
-
         function showFolderDropdown() {
             renderFolderDropdown('');
             document.getElementById('folderDropdownMenu').style.display = 'block';
@@ -579,15 +665,9 @@
             menu.style.display = 'block';
         }
 
-        function selectFolder(name) {
-            document.getElementById('songFolder').value = name;
-            document.getElementById('folderDropdownMenu').style.display = 'none';
-            updateSingerImageUrl(name);
-        }
-
         async function handleUploadSong(e) {
             e.preventDefault();
-            
+
             const title = cleanString(document.getElementById('songTitle').value);
             const singer = cleanString(document.getElementById('songSinger').value);
             const category = document.getElementById('songCategory').value;
@@ -601,7 +681,7 @@
                 return;
             }
 
-            const titleExists = songsCatalog.some(song => 
+            const titleExists = songsCatalog.some(song =>
                 song.title.toLowerCase() === title.toLowerCase()
             );
 
@@ -656,7 +736,7 @@
 
                 updateDropdownLists();
                 renderTable();
-                
+
                 fileInput.value = '';
                 document.getElementById('fileLabelText').textContent = 'Click to browse or drop MP3 file here';
                 document.getElementById('fileLabelText').className = "text-xs text-slate-700 font-semibold mb-0.5";
@@ -691,7 +771,7 @@
                 Key: 'songs.json',
                 Body: jsonString,
                 ContentType: 'application/json'
-            }, function(err, data) {
+            }, function (err, data) {
                 publishBtn.disabled = false;
                 publishBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Publish to R2`;
 
@@ -718,8 +798,8 @@
             if (!s3) return;
 
             const bucketName = document.getElementById('r2BucketName').value.trim();
-            const r2Path = song.url.startsWith('http') 
-                ? decodeURIComponent(song.url.split('.dev/').pop()) 
+            const r2Path = song.url.startsWith('http')
+                ? decodeURIComponent(song.url.split('.dev/').pop())
                 : song.url;
 
             showStatus('Deleting MP3 from R2...', 'blue');
@@ -727,7 +807,7 @@
             s3.deleteObject({
                 Bucket: bucketName,
                 Key: r2Path
-            }, async function(err, data) {
+            }, async function (err, data) {
                 if (err) {
                     alert('Failed to delete file from R2: ' + err.message);
                     showStatus('R2 delete failed', 'rose');
@@ -747,7 +827,7 @@
                     Key: 'songs.json',
                     Body: jsonString,
                     ContentType: 'application/json'
-                }, function(pubErr, pubData) {
+                }, function (pubErr, pubData) {
                     if (pubErr) {
                         showStatus('Catalog sync failed', 'rose');
                         return;
@@ -787,8 +867,8 @@
             const endIdx = Math.min(startIdx + pageSize, total);
             const pageItems = filteredCatalog.slice(startIdx, endIdx);
 
-            pageInfoText.textContent = total === 0 
-                ? 'Showing 0 of 0' 
+            pageInfoText.textContent = total === 0
+                ? 'Showing 0 of 0'
                 : `Showing ${startIdx + 1}–${endIdx} of ${total}`;
             pageBadge.textContent = `${currentPage} / ${maxPage}`;
 
@@ -839,4 +919,5 @@
         }
     </script>
 </body>
+
 </html>
