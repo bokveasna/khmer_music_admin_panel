@@ -392,13 +392,74 @@
             });
         });
 
-        // Strips invisible zero-width spaces, collapses whitespaces, and trims
+        // Strips invisible zero-width spaces, collapses whitespaces, and unifies spelling variants
         function normalizeKhmer(str) {
             if (!str) return '';
-            return str
-                .replace(/[\u200B-\u200D\uFEFF]/g, '')
-                .replace(/\s+/g, ' ')
+            let s = str
+                .replace(/[\u200B-\u200D\uFEFF]/g, '') // remove invisible zero-width spaces
+                .replace(/\s+/g, ' ')                  // collapse extra spaces
                 .trim();
+
+            // Unify spelling variations for Sin Sisamuth into one exact name
+            if (s.includes('សាមុត')) {
+                return 'ស៊ីន ស៊ីសាមុត';
+            }
+
+            return s;
+        }
+
+        // Returns deduplicated list of unique folders
+        function getUniqueFolders() {
+            const seen = new Set();
+            const result = [];
+
+            // 1. Add known folders from your R2 bucket
+            knownFolders.forEach(name => {
+                const clean = normalizeKhmer(name);
+                if (clean && !seen.has(clean)) {
+                    seen.add(clean);
+                    result.push(clean);
+                }
+            });
+
+            // 2. Add folders from catalog, automatically merging duplicates
+            songsCatalog.forEach(s => {
+                if (s.url && s.url.includes('/')) {
+                    const rawPart = s.url.split('/')[0];
+                    const decoded = decodeURIComponent(rawPart);
+                    const clean = normalizeKhmer(decoded);
+                    if (clean && !seen.has(clean)) {
+                        seen.add(clean);
+                        result.push(clean);
+                    }
+                }
+            });
+
+            return result.sort((a, b) => a.localeCompare(b, 'km'));
+        }
+
+        // Returns deduplicated list of unique singers
+        function getUniqueSingers() {
+            const seen = new Set();
+            const result = [];
+
+            knownFolders.forEach(name => {
+                const clean = normalizeKhmer(name);
+                if (clean && !seen.has(clean)) {
+                    seen.add(clean);
+                    result.push(clean);
+                }
+            });
+
+            songsCatalog.forEach(s => {
+                const clean = normalizeKhmer(s.singer);
+                if (clean && !seen.has(clean)) {
+                    seen.add(clean);
+                    result.push(clean);
+                }
+            });
+
+            return result.sort((a, b) => a.localeCompare(b, 'km'));
         }
 
         function formatBytes(bytes) {
@@ -613,32 +674,70 @@
 
         async function fetchMissingSizes() {
             const s3 = getS3Client();
-            if (!s3) return;
-
+            const baseUrl = document.getElementById('r2BaseUrl').value.trim().replace(/\/+$/, '');
             const bucketName = document.getElementById('r2BucketName').value.trim();
-            const missing = songsCatalog.filter(s => !s.size || s.size <= 0);
 
+            const missing = songsCatalog.filter(s => !s.size || s.size <= 0);
             if (missing.length === 0) {
                 showStatus('All songs already have file sizes!', 'emerald');
                 return;
             }
 
-            showStatus(`Fetching sizes for ${missing.length} songs from R2...`, 'blue');
-
+            showStatus(`Fetching sizes for ${missing.length} songs...`, 'blue');
             let updatedCount = 0;
-            for (let song of missing) {
+
+            // Method 1: Fast batch lookup using S3 ListObjects (single network call)
+            if (s3) {
                 try {
-                    const r2Path = song.url.startsWith('http')
-                        ? decodeURIComponent(song.url.split('.dev/').pop())
-                        : decodeURIComponent(song.url);
+                    let continuationToken = null;
+                    const r2ObjectsMap = new Map();
 
-                    const meta = await s3.headObject({
-                        Bucket: bucketName,
-                        Key: r2Path
-                    }).promise();
+                    do {
+                        const res = await s3.listObjectsV2({
+                            Bucket: bucketName,
+                            ContinuationToken: continuationToken
+                        }).promise();
 
-                    if (meta && meta.ContentLength) {
-                        song.size = meta.ContentLength;
+                        if (res && res.Contents) {
+                            res.Contents.forEach(obj => {
+                                r2ObjectsMap.set(obj.Key, obj.Size);
+                                r2ObjectsMap.set(decodeURIComponent(obj.Key), obj.Size);
+                            });
+                        }
+                        continuationToken = res.IsTruncated ? res.NextContinuationToken : null;
+                    } while (continuationToken);
+
+                    for (let song of missing) {
+                        const rawKey = song.url.startsWith('http') 
+                            ? song.url.split('.dev/').pop() 
+                            : song.url;
+                        const decodedKey = decodeURIComponent(rawKey);
+
+                        if (r2ObjectsMap.has(rawKey)) {
+                            song.size = r2ObjectsMap.get(rawKey);
+                            updatedCount++;
+                        } else if (r2ObjectsMap.has(decodedKey)) {
+                            song.size = r2ObjectsMap.get(decodedKey);
+                            updatedCount++;
+                        }
+                    }
+                } catch (err) {
+                    console.warn('Batch listObjectsV2 lookup failed, falling back to public HEAD fetch:', err);
+                }
+            }
+
+            // Method 2: Fallback for any remaining songs via public CDN URL
+            const remaining = songsCatalog.filter(s => !s.size || s.size <= 0);
+            for (let song of remaining) {
+                try {
+                    const fullUrl = song.url.startsWith('http') 
+                        ? song.url 
+                        : `${baseUrl}/${song.url}`;
+
+                    const res = await fetch(fullUrl, { method: 'HEAD' });
+                    const lengthHeader = res.headers.get('content-length');
+                    if (lengthHeader) {
+                        song.size = parseInt(lengthHeader, 10);
                         updatedCount++;
                     }
                 } catch (e) {
@@ -647,7 +746,7 @@
             }
 
             applyAllFilters();
-            showStatus(`Successfully retrieved sizes for ${updatedCount} songs! Click 'Publish to R2' to save.`, 'emerald');
+            showStatus(`Retrieved sizes for ${updatedCount} songs! Click 'Publish to R2' to save.`, 'emerald');
         }
 
         async function syncCatalogFromR2() {
