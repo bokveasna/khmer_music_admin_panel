@@ -90,7 +90,10 @@
                 <p class="text-xs text-slate-500">Upload MP3s into artist folders & publish <code class="text-brand-600 font-mono font-semibold">songs.json</code> to Cloudflare R2</p>
             </div>
         </div>
-        <div class="flex items-center space-x-3">
+        <div class="flex items-center space-x-2.5">
+            <button onclick="fetchMissingSizes()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl border border-slate-300 transition flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-weight-scale text-brand-600"></i> Fetch Sizes
+            </button>
             <button onclick="syncCatalogFromR2()" class="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-xl border border-slate-300 transition flex items-center gap-2 shadow-sm">
                 <i class="fa-solid fa-rotate text-brand-600"></i> Sync songs.json from R2
             </button>
@@ -242,7 +245,9 @@
         <div class="lg:col-span-7 flex flex-col space-y-6">
 
             <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex-1 flex flex-col">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                
+                <!-- Header with Title & Action Buttons -->
+                <div class="flex items-center justify-between gap-3 mb-3">
                     <div class="flex items-center gap-2">
                         <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2">
                             <i class="fa-solid fa-list-music text-brand-600"></i> R2 Songs Catalog
@@ -251,23 +256,69 @@
                     </div>
 
                     <div class="flex items-center gap-2">
-                        <div class="relative">
-                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                            <input type="text" id="catalogSearchInput" placeholder="Filter songs..." oninput="onSearchChanged(this.value)"
-                                class="bg-slate-50 border border-slate-300 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-brand-500 w-44">
-                        </div>
+                        <button onclick="resetAllFilters()" class="text-xs text-slate-600 hover:text-slate-800 transition flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 border border-slate-200">
+                            <i class="fa-solid fa-arrow-rotate-left"></i> Reset
+                        </button>
                         <button onclick="clearAllSongs()" class="text-xs text-rose-600 hover:text-rose-700 transition flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-rose-50 border border-rose-200">
                             <i class="fa-solid fa-trash-can"></i> Clear All
                         </button>
                     </div>
                 </div>
 
+                <!-- Multi-Filter Bar (Title, Category, Singer, Size) -->
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 mb-4 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                    <!-- Title Filter -->
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="filterTitleInput" placeholder="Filter title..." oninput="applyAllFilters()"
+                            class="w-full bg-white border border-slate-300 rounded-lg pl-8 pr-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-brand-500">
+                    </div>
+
+                    <!-- Category Filter -->
+                    <div>
+                        <select id="filterCategorySelect" onchange="applyAllFilters()"
+                            class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-brand-500">
+                            <option value="">All Categories</option>
+                            <option value="ចម្រៀងសម័យទំនើប">ចម្រៀងសម័យទំនើប</option>
+                            <option value="ចម្រៀងសម័យដើម">ចម្រៀងសម័យដើម</option>
+                            <option value="ចម្រៀង Rap">ចម្រៀង Rap</option>
+                            <option value="ចម្រៀង Sad">ចម្រៀង Sad</option>
+                            <option value="ចម្រៀងស្រុកស្រែ">ចម្រៀងស្រុកស្រែ</option>
+                            <option value="ចម្រៀង រ៉ូមេនទិច">ចម្រៀង រ៉ូមេនទិច</option>
+                            <option value="ចម្រៀងប្រពៃណី">ចម្រៀងប្រពៃណី</option>
+                        </select>
+                    </div>
+
+                    <!-- Singer Filter -->
+                    <div>
+                        <select id="filterSingerSelect" onchange="applyAllFilters()"
+                            class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-brand-500">
+                            <option value="">All Singers</option>
+                        </select>
+                    </div>
+
+                    <!-- Size Filter -->
+                    <div>
+                        <select id="filterSizeSelect" onchange="applyAllFilters()"
+                            class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-brand-500">
+                            <option value="">All Sizes</option>
+                            <option value="small">&lt; 4 MB</option>
+                            <option value="medium">4 – 8 MB</option>
+                            <option value="large">&gt; 8 MB</option>
+                            <option value="sort_desc">Sort: Largest first</option>
+                            <option value="sort_asc">Sort: Smallest first</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Table Container -->
                 <div class="flex-1 overflow-x-auto rounded-xl border border-slate-200 bg-slate-50 min-h-[380px]">
                     <table class="w-full text-left text-sm text-slate-700">
                         <thead class="bg-slate-100 text-xs uppercase text-slate-500 sticky top-0 border-b border-slate-200">
                             <tr>
                                 <th scope="col" class="px-4 py-3">Title & Artist</th>
                                 <th scope="col" class="px-4 py-3">Category</th>
+                                <th scope="col" class="px-4 py-3">Size</th>
                                 <th scope="col" class="px-4 py-3">R2 Path</th>
                                 <th scope="col" class="px-4 py-3 text-right">Actions</th>
                             </tr>
@@ -278,6 +329,7 @@
                     </table>
                 </div>
 
+                <!-- Pagination Footer -->
                 <div class="flex items-center justify-between pt-3 border-t border-slate-100 mt-2 text-xs text-slate-500">
                     <span id="pageInfoText">Showing 0 to 0 of 0</span>
                     <div class="flex items-center gap-1">
@@ -312,7 +364,6 @@
         let filteredCatalog = [];
         let uploadedImageFile = null;
 
-        // Known singer directory list from R2 bucket
         const knownFolders = [
             'ថុល សុភិទិ',
             'នាង ដាវីន',
@@ -340,6 +391,13 @@
             });
         });
 
+        function formatBytes(bytes) {
+            if (!bytes || isNaN(bytes) || bytes <= 0) return '--';
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(1024));
+            return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + sizes[i];
+        }
+
         function handleImageError(img) {
             img.src = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500';
             const status = document.getElementById('imagePreviewStatus');
@@ -365,7 +423,6 @@
             }
         }
 
-        // Resolves singer name or folder to its proper R2 profile.jpg location
         function updateSingerImageUrl(targetFolder) {
             const folderVal = (targetFolder || document.getElementById('songFolder').value || document.getElementById('songSinger').value).trim();
             if (!folderVal) return;
@@ -373,7 +430,6 @@
             const baseUrl = document.getElementById('r2BaseUrl').value.trim().replace(/\/+$/, '');
             const imageInput = document.getElementById('songImage');
 
-            // 1. Look for existing image inside catalog
             const lower = folderVal.toLowerCase();
             const existing = songsCatalog.find(s => 
                 (s.singer && s.singer.trim().toLowerCase() === lower) ||
@@ -383,7 +439,6 @@
             if (existing && existing.image && !existing.image.includes('unsplash.com')) {
                 imageInput.value = existing.image;
             } else if (baseUrl) {
-                // 2. Direct R2 Path format
                 imageInput.value = `${baseUrl}/singers/${encodeURIComponent(folderVal)}/profile.jpg`;
             }
 
@@ -391,7 +446,6 @@
             refreshImagePreview(imageInput.value);
         }
 
-        // Detects singer and sets folder appropriately
         function applySingerProfile(rawInput) {
             const input = (rawInput || '').trim();
             if (!input) return;
@@ -399,7 +453,6 @@
             const folderInput = document.getElementById('songFolder');
             let detectedFolder = '';
 
-            // Match against known folders list first
             for (let folder of knownFolders) {
                 if (input.includes(folder)) {
                     detectedFolder = folder;
@@ -407,7 +460,6 @@
                 }
             }
 
-            // Fallback match from existing catalog
             if (!detectedFolder) {
                 const lower = input.toLowerCase();
                 const existing = songsCatalog.find(s => s.singer && lower.includes(s.singer.toLowerCase()));
@@ -418,7 +470,6 @@
                 }
             }
 
-            // Otherwise, clean up the singer's name to use as folder
             if (!detectedFolder) {
                 detectedFolder = cleanString(input);
             }
@@ -458,7 +509,7 @@
             const label = document.getElementById('fileLabelText');
             if (input.files && input.files[0]) {
                 const file = input.files[0];
-                label.textContent = `Selected: ${file.name}`;
+                label.textContent = `Selected: ${file.name} (${formatBytes(file.size)})`;
                 label.className = "text-xs text-brand-700 font-bold mb-0.5 truncate max-w-xs";
 
                 let baseName = file.name.replace(/\.[^/.]+$/, "");
@@ -542,6 +593,45 @@
             });
         }
 
+        async function fetchMissingSizes() {
+            const s3 = getS3Client();
+            if (!s3) return;
+
+            const bucketName = document.getElementById('r2BucketName').value.trim();
+            const missing = songsCatalog.filter(s => !s.size || s.size <= 0);
+
+            if (missing.length === 0) {
+                showStatus('All songs already have file sizes!', 'emerald');
+                return;
+            }
+
+            showStatus(`Fetching sizes for ${missing.length} songs from R2...`, 'blue');
+
+            let updatedCount = 0;
+            for (let song of missing) {
+                try {
+                    const r2Path = song.url.startsWith('http')
+                        ? decodeURIComponent(song.url.split('.dev/').pop())
+                        : song.url;
+
+                    const meta = await s3.headObject({
+                        Bucket: bucketName,
+                        Key: r2Path
+                    }).promise();
+
+                    if (meta && meta.ContentLength) {
+                        song.size = meta.ContentLength;
+                        updatedCount++;
+                    }
+                } catch (e) {
+                    console.warn(`Could not fetch size for ${song.title}:`, e);
+                }
+            }
+
+            applyAllFilters();
+            showStatus(`Successfully retrieved sizes for ${updatedCount} songs! Click 'Publish to R2' to save.`, 'emerald');
+        }
+
         async function syncCatalogFromR2() {
             const baseUrl = document.getElementById('r2BaseUrl').value.trim();
             try {
@@ -551,11 +641,16 @@
                     const data = await response.json();
                     if (Array.isArray(data)) {
                         songsCatalog = data;
-                        filteredCatalog = [...songsCatalog];
-                        currentPage = 1;
+                        applyAllFilters();
                         updateDropdownLists();
-                        renderTable();
+                        populateSingerFilterDropdown();
                         showStatus('Successfully synced songs.json from R2!', 'emerald');
+
+                        // Automatically fetch sizes if any song has missing size data
+                        const hasMissingSizes = songsCatalog.some(s => !s.size || s.size <= 0);
+                        if (hasMissingSizes) {
+                            fetchMissingSizes();
+                        }
                         return;
                     }
                 }
@@ -566,19 +661,66 @@
             }
         }
 
-        function onSearchChanged(query) {
-            const q = query.trim().toLowerCase();
-            if (!q) {
-                filteredCatalog = [...songsCatalog];
-            } else {
-                filteredCatalog = songsCatalog.filter(s =>
-                    (s.title && s.title.toLowerCase().includes(q)) ||
-                    (s.singer && s.singer.toLowerCase().includes(q)) ||
-                    (s.category && s.category.toLowerCase().includes(q))
-                );
+        function populateSingerFilterDropdown() {
+            const select = document.getElementById('filterSingerSelect');
+            const currentVal = select.value;
+            const singers = getUniqueSingers();
+
+            select.innerHTML = '<option value="">All Singers</option>' +
+                singers.map(s => `<option value="${s.replace(/"/g, '&quot;')}">${s}</option>`).join('');
+
+            if (singers.includes(currentVal)) {
+                select.value = currentVal;
             }
+        }
+
+        function applyAllFilters() {
+            const titleQuery = (document.getElementById('filterTitleInput')?.value || '').trim().toLowerCase();
+            const categoryQuery = (document.getElementById('filterCategorySelect')?.value || '').trim().toLowerCase();
+            const singerQuery = (document.getElementById('filterSingerSelect')?.value || '').trim().toLowerCase();
+            const sizeOption = document.getElementById('filterSizeSelect')?.value || '';
+
+            filteredCatalog = songsCatalog.filter(song => {
+                if (titleQuery && !song.title.toLowerCase().includes(titleQuery)) {
+                    return false;
+                }
+
+                if (categoryQuery && (!song.category || !song.category.toLowerCase().includes(categoryQuery))) {
+                    return false;
+                }
+
+                if (singerQuery) {
+                    const sName = (song.singer || '').toLowerCase();
+                    const sUrl = (song.url || '').toLowerCase();
+                    if (!sName.includes(singerQuery) && !sUrl.includes(singerQuery)) {
+                        return false;
+                    }
+                }
+
+                const bytes = Number(song.size) || 0;
+                if (sizeOption === 'small' && bytes >= 4 * 1024 * 1024) return false;
+                if (sizeOption === 'medium' && (bytes < 4 * 1024 * 1024 || bytes > 8 * 1024 * 1024)) return false;
+                if (sizeOption === 'large' && bytes <= 8 * 1024 * 1024) return false;
+
+                return true;
+            });
+
+            if (sizeOption === 'sort_desc') {
+                filteredCatalog.sort((a, b) => (Number(b.size) || 0) - (Number(a.size) || 0));
+            } else if (sizeOption === 'sort_asc') {
+                filteredCatalog.sort((a, b) => (Number(a.size) || 0) - (Number(b.size) || 0));
+            }
+
             currentPage = 1;
             renderTable();
+        }
+
+        function resetAllFilters() {
+            document.getElementById('filterTitleInput').value = '';
+            document.getElementById('filterCategorySelect').value = '';
+            document.getElementById('filterSingerSelect').value = '';
+            document.getElementById('filterSizeSelect').value = '';
+            applyAllFilters();
         }
 
         function changePage(direction) {
@@ -594,8 +736,8 @@
 
         function getUniqueSingers() {
             const set = new Set(knownFolders);
-            songsCatalog.forEach(s => { if (s.singer) set.add(s.singer); });
-            return Array.from(set);
+            songsCatalog.forEach(s => { if (s.singer) set.add(s.singer.trim()); });
+            return Array.from(set).sort();
         }
 
         function getUniqueFolders() {
@@ -603,10 +745,10 @@
             songsCatalog.forEach(s => {
                 if (s.url && s.url.includes('/')) {
                     const parts = s.url.split('/');
-                    if (parts.length >= 2) set.add(parts[0]);
+                    if (parts.length >= 2) set.add(parts[0].trim());
                 }
             });
-            return Array.from(set);
+            return Array.from(set).sort();
         }
 
         function showSingerDropdown() {
@@ -713,11 +855,13 @@
                 }
 
                 const filename = file.name;
+                // Encode the path to ensure valid ASCII characters in the HTTP PUT request
                 const r2Path = `${folder}/${filename}`;
+                const safeKey = `${encodeURIComponent(folder)}/${encodeURIComponent(filename)}`;
 
                 await s3.putObject({
                     Bucket: bucketName,
-                    Key: r2Path,
+                    Key: safeKey,
                     Body: file,
                     ContentType: file.type || 'audio/mpeg'
                 }).promise();
@@ -727,15 +871,13 @@
                     singer,
                     category,
                     image: image && !image.startsWith('[Selected') ? image : `${baseUrl}/singers/${encodeURIComponent(folder)}/profile.jpg`,
-                    url: r2Path
+                    url: `${encodeURIComponent(folder)}/${encodeURIComponent(filename)}`,
+                    size: file.size
                 };
 
                 songsCatalog.unshift(newSong);
-                filteredCatalog = [...songsCatalog];
-                currentPage = 1;
-
-                updateDropdownLists();
-                renderTable();
+                populateSingerFilterDropdown();
+                applyAllFilters();
 
                 fileInput.value = '';
                 document.getElementById('fileLabelText').textContent = 'Click to browse or drop MP3 file here';
@@ -816,10 +958,9 @@
 
                 const rawIdx = songsCatalog.indexOf(song);
                 if (rawIdx !== -1) songsCatalog.splice(rawIdx, 1);
-                filteredCatalog.splice(indexInFiltered, 1);
-
-                updateDropdownLists();
-                renderTable();
+                
+                populateSingerFilterDropdown();
+                applyAllFilters();
 
                 const jsonString = JSON.stringify(songsCatalog, null, 2);
                 s3.putObject({
@@ -843,6 +984,7 @@
                 filteredCatalog = [];
                 currentPage = 1;
                 updateDropdownLists();
+                populateSingerFilterDropdown();
                 renderTable();
             }
         }
@@ -878,8 +1020,8 @@
             if (pageItems.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="4" class="px-4 py-10 text-center text-slate-400 text-xs">
-                            ${songsCatalog.length === 0 ? 'No songs in catalog yet. Upload an MP3 and publish to R2.' : 'No matching songs found.'}
+                        <td colspan="5" class="px-4 py-10 text-center text-slate-400 text-xs">
+                            ${songsCatalog.length === 0 ? 'No songs in catalog yet. Upload an MP3 and publish to R2.' : 'No songs match the current filter criteria.'}
                         </td>
                     </tr>
                 `;
@@ -888,6 +1030,7 @@
 
             tbody.innerHTML = pageItems.map((song, i) => {
                 const actualIndex = startIdx + i;
+                const displaySize = song.size ? formatBytes(song.size) : '--';
                 return `
                 <tr class="hover:bg-slate-100/80 transition">
                     <td class="px-4 py-3 flex items-center gap-3">
@@ -900,7 +1043,10 @@
                     <td class="px-4 py-3">
                         <span class="px-2 py-0.5 text-[10px] font-medium bg-brand-50 text-brand-700 rounded-md border border-brand-200">${song.category}</span>
                     </td>
-                    <td class="px-4 py-3 font-mono text-[11px] text-slate-600 max-w-[200px] truncate" title="${song.url}">
+                    <td class="px-4 py-3 text-xs font-mono text-slate-500">
+                        ${displaySize}
+                    </td>
+                    <td class="px-4 py-3 font-mono text-[11px] text-slate-600 max-w-[180px] truncate" title="${song.url}">
                         ${song.url}
                     </td>
                     <td class="px-4 py-3 text-right">
