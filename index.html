@@ -1,1187 +1,1246 @@
-<!DOCTYPE html>
-<html lang="en" class="h-full">
+    .custom-dropdown-menu {
+        display: none;
+        position: absolute;
+        left: 0;
+        right: 0;
+        margin-top: 4px;
+        background-color: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.75rem;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        max-height: 220px;
+        overflow-y: auto;
+        z-index: 50;
+        padding: 4px;
+    }
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Khmer Music Admin Panel - Cloudflare R2 Manager</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Inter Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- AWS SDK for S3 / Cloudflare R2 browser support -->
-    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1498.0.min.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    colors: {
-                        brand: {
-                            50: '#f5f3ff',
-                            100: '#ede9fe',
-                            500: '#8b5cf6',
-                            600: '#7c3aed',
-                            700: '#6d28d9',
-                            800: '#5b21b6',
-                            900: '#4c1d95',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .custom-dropdown-item {
+        padding: 10px 14px;
+        font-size: 0.875rem;
+        color: #334155;
+        cursor: pointer;
+        border-radius: 0.5rem;
+        transition: all 0.15s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
 
-        .custom-dropdown-menu {
-            display: none;
-            position: absolute;
-            left: 0;
-            right: 0;
-            margin-top: 4px;
-            background-color: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.75rem;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-            max-height: 220px;
-            overflow-y: auto;
-            z-index: 50;
-            padding: 4px;
-        }
+    .custom-dropdown-item:hover {
+        background-color: #f5f3ff;
+        color: #7c3aed;
+        padding-left: 18px;
+    }
+</style>
 
-        .custom-dropdown-item {
-            padding: 10px 14px;
-            font-size: 0.875rem;
-            color: #334155;
-            cursor: pointer;
-            border-radius: 0.5rem;
-            transition: all 0.15s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
 
-        .custom-dropdown-item:hover {
-            background-color: #f5f3ff;
-            color: #7c3aed;
-            padding-left: 18px;
-        }
-    </style>
-</head>
-
-<body class="bg-slate-100 text-slate-800 h-full flex flex-col antialiased selection:bg-brand-500 selection:text-white">
-
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 px-6 py-4 flex items-center justify-between shadow-sm">
-        <div class="flex items-center space-x-3">
-            <div class="bg-brand-600 text-white p-2.5 rounded-xl shadow-lg shadow-brand-600/20 flex items-center justify-center">
-                <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
-            </div>
-            <div>
-                <h1 class="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-                    ចម្រៀងខ្មែរ R2 Direct Admin <span class="text-xs px-2 py-0.5 rounded-full bg-brand-100 text-brand-700 border border-brand-200 font-medium">Cloudflare Manager</span>
-                </h1>
-                <p class="text-xs text-slate-500">Upload MP3s into artist folders & publish <code class="text-brand-600 font-mono font-semibold">songs.json</code> to Cloudflare R2</p>
-            </div>
+<header class="bg-white border-b border-slate-200 sticky top-0 z-50 px-6 py-4 flex items-center justify-between shadow-sm">
+    <div class="flex items-center space-x-3">
+        <div class="bg-brand-600 text-white p-2.5 rounded-xl shadow-lg shadow-brand-600/20 flex items-center justify-center">
+            <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
         </div>
-        <div class="flex items-center space-x-2.5">
-            <button onclick="fetchMissingSizes()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl border border-slate-300 transition flex items-center gap-1.5 shadow-sm">
-                <i class="fa-solid fa-weight-scale text-brand-600"></i> Fetch Sizes
-            </button>
-            <button onclick="syncCatalogFromR2()" class="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-xl border border-slate-300 transition flex items-center gap-2 shadow-sm">
-                <i class="fa-solid fa-rotate text-brand-600"></i> Sync songs.json from R2
-            </button>
-            <button onclick="publishCatalogToR2()" id="publishBtn" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-brand-600/20 transition flex items-center gap-2">
-                <i class="fa-solid fa-cloud-arrow-up"></i> Publish to R2
-            </button>
+        <div>
+            <h1 class="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+                ចម្រៀងខ្មែរ R2 Direct Admin <span class="text-xs px-2 py-0.5 rounded-full bg-brand-100 text-brand-700 border border-brand-200 font-medium">Cloudflare Manager</span>
+            </h1>
+            <p class="text-xs text-slate-500">Upload MP3s into artist folders & publish <code class="text-brand-600 font-mono font-semibold">songs.json</code> to Cloudflare R2</p>
         </div>
-    </header>
+    </div>
+    <div class="flex items-center space-x-2.5">
+        <button onclick="fetchMissingSizes()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl border border-slate-300 transition flex items-center gap-1.5 shadow-sm">
+            <i class="fa-solid fa-weight-scale text-brand-600"></i> Fetch Sizes
+        </button>
+        <button onclick="syncCatalogFromR2()" class="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-xl border border-slate-300 transition flex items-center gap-2 shadow-sm">
+            <i class="fa-solid fa-rotate text-brand-600"></i> Sync songs.json from R2
+        </button>
+        <button onclick="publishCatalogToR2()" id="publishBtn" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-brand-600/20 transition flex items-center gap-2">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Publish to R2
+        </button>
+    </div>
+</header>
 
-    <main class="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-y-auto">
+<main class="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-y-auto">
 
-        <!-- Left Column: Credentials & Upload Form -->
-        <div class="lg:col-span-5 space-y-6">
+    <!-- Left Column: Credentials & Upload Form -->
+    <div class="lg:col-span-5 space-y-6">
 
-            <!-- Credentials Card -->
-            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-                <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2 mb-4">
-                    <i class="fa-solid fa-key text-brand-600"></i> Cloudflare R2 API Credentials
-                </h2>
-                <div class="space-y-3">
-                    <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">R2 Public Base URL</label>
-                        <input type="text" id="r2BaseUrl" value="https://pub-4b6e0edb03794226bc7b6bf9b9dc1b4c.r2.dev"
-                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500"
-                            oninput="updateSingerImageUrl()">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">Account ID (Cloudflare Dashboard URL)</label>
-                        <input type="text" id="r2AccountId" placeholder="e.g., a1b2c3d4e5f6..."
-                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500">
-                    </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="block text-xs font-medium text-slate-600 mb-1">Access Key ID</label>
-                            <input type="password" id="r2AccessKey" placeholder="Access Key"
-                                class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-600 mb-1">Secret Access Key</label>
-                            <input type="password" id="r2SecretKey" placeholder="Secret Key"
-                                class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">Bucket Name</label>
-                        <input type="text" id="r2BucketName" value="app-music-bucket"
-                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500">
-                    </div>
-                    <button onclick="saveCredentials()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
-                        Save Credentials Locally
-                    </button>
+        <!-- Credentials Card -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+            <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2 mb-4">
+                <i class="fa-solid fa-key text-brand-600"></i> Cloudflare R2 API Credentials
+            </h2>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">R2 Public Base URL</label>
+                    <input type="text" id="r2BaseUrl" value="https://pub-4b6e0edb03794226bc7b6bf9b9dc1b4c.r2.dev"
+                        class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500"
+                        oninput="updateSingerImageUrl()">
                 </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Account ID (Cloudflare Dashboard URL)</label>
+                    <input type="text" id="r2AccountId" placeholder="e.g., a1b2c3d4e5f6..."
+                        class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Access Key ID</label>
+                        <input type="password" id="r2AccessKey" placeholder="Access Key"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Secret Access Key</label>
+                        <input type="password" id="r2SecretKey" placeholder="Secret Key"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Bucket Name</label>
+                    <input type="text" id="r2BucketName" value="app-music-bucket"
+                        class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500">
+                </div>
+                <button onclick="saveCredentials()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
+                    Save Credentials Locally
+                </button>
             </div>
+        </div>
 
-            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-                <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2 mb-4">
-                    <i class="fa-solid fa-circle-plus text-brand-600"></i> Upload New Song to R2
-                </h2>
-                <form id="songForm" onsubmit="handleUploadSong(event)" class="space-y-4">
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+            <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2 mb-4">
+                <i class="fa-solid fa-circle-plus text-brand-600"></i> Upload New Song to R2
+            </h2>
+            <form id="songForm" onsubmit="handleUploadSong(event)" class="space-y-4">
 
-                    <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1.5">Select MP3 Audio File (.mp3)</label>
-                        <label for="audioFile" class="flex flex-col items-center justify-center w-full h-28 border-2 border-brand-300 border-dashed rounded-xl cursor-pointer bg-brand-50/50 hover:bg-brand-50 transition">
-                            <div class="flex flex-col items-center justify-center pt-4 pb-4 px-4 text-center">
-                                <i class="fa-solid fa-file-audio text-brand-600 text-2xl mb-1.5"></i>
-                                <p id="fileLabelText" class="text-xs text-slate-700 font-semibold mb-0.5">Click to browse or drop MP3 file here</p>
-                                <p class="text-[10px] text-slate-400">Auto-detects Title & Artist cleanly</p>
-                            </div>
-                            <input type="file" id="audioFile" accept=".mp3,audio/mpeg" required class="hidden" onchange="handleFileSelected(this)">
-                        </label>
-                    </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1.5">Select MP3 Audio File (.mp3)</label>
+                    <label for="audioFile" class="flex flex-col items-center justify-center w-full h-28 border-2 border-brand-300 border-dashed rounded-xl cursor-pointer bg-brand-50/50 hover:bg-brand-50 transition">
+                        <div class="flex flex-col items-center justify-center pt-4 pb-4 px-4 text-center">
+                            <i class="fa-solid fa-file-audio text-brand-600 text-2xl mb-1.5"></i>
+                            <p id="fileLabelText" class="text-xs text-slate-700 font-semibold mb-0.5">Click to browse or drop MP3 file here</p>
+                            <p class="text-[10px] text-slate-400">Auto-detects Title & Artist cleanly</p>
+                        </div>
+                        <input type="file" id="audioFile" accept=".mp3,audio/mpeg" required class="hidden" onchange="handleFileSelected(this)">
+                    </label>
+                </div>
 
-                    <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1.5">Song Title (ចំណងជើងបទចម្រៀង)</label>
-                        <input type="text" id="songTitle" required placeholder="Clean song title..."
-                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500">
-                    </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1.5">Song Title (ចំណងជើងបទចម្រៀង)</label>
+                    <input type="text" id="songTitle" required placeholder="Clean song title..."
+                        class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500">
+                </div>
 
+                <div class="relative">
+                    <label class="block text-xs font-medium text-slate-600 mb-1.5">Artist / Singer (តារាចម្រៀង - Search or Select)</label>
                     <div class="relative">
-                        <label class="block text-xs font-medium text-slate-600 mb-1.5">Artist / Singer (តារាចម្រៀង - Search or Select)</label>
+                        <input type="text" id="songSinger" required placeholder="Type or select artist..."
+                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 pr-10 text-sm text-slate-800 focus:outline-none focus:border-brand-500"
+                            oninput="onSingerInputChanged(this)" onfocus="showSingerDropdown()" autocomplete="off">
+                        <div onclick="toggleSingerDropdown()" class="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-slate-400 hover:text-brand-600 px-1">
+                            <i class="fa-solid fa-chevron-down text-xs"></i>
+                        </div>
+                    </div>
+                    <div id="singerDropdownMenu" class="custom-dropdown-menu"></div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1.5">Category (ប្រភេទ)</label>
+                        <select id="songCategory" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500 font-medium">
+                            <option value="ចម្រៀងសម័យទំនើប">ចម្រៀងសម័យទំនើប (Modern)</option>
+                            <option value="ចម្រៀងសម័យដើម">ចម្រៀងសម័យដើម (Classic)</option>
+                            <option value="ចម្រៀង Rap">ចម្រៀង Rap (Rap)</option>
+                            <option value="ចម្រៀង Sad">ចម្រៀង Sad (Sad)</option>
+                            <option value="ចម្រៀងស្រុកស្រែ">ចម្រៀងស្រុកស្រែ (Countryside)</option>
+                            <option value="ចម្រៀង រ៉ូមេនទិច">ចម្រៀង រ៉ូមេនទិច (Romance)</option>
+                            <option value="ចម្រៀងប្រពៃណី">ចម្រៀងប្រពៃណី (Traditional)</option>
+                        </select>
+                    </div>
+                    <div class="relative">
+                        <label class="block text-xs font-medium text-slate-600 mb-1.5">R2 Folder Name</label>
                         <div class="relative">
-                            <input type="text" id="songSinger" required placeholder="Type or select artist..."
+                            <input type="text" id="songFolder" required placeholder="Artist folder..."
                                 class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 pr-10 text-sm text-slate-800 focus:outline-none focus:border-brand-500"
-                                oninput="onSingerInputChanged(this)" onfocus="showSingerDropdown()" autocomplete="off">
-                            <div onclick="toggleSingerDropdown()" class="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-slate-400 hover:text-brand-600 px-1">
+                                oninput="onFolderInputChanged(this)" onfocus="showFolderDropdown()" autocomplete="off">
+                            <div onclick="toggleFolderDropdown()" class="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-slate-400 hover:text-brand-600 px-1">
                                 <i class="fa-solid fa-chevron-down text-xs"></i>
                             </div>
                         </div>
-                        <div id="singerDropdownMenu" class="custom-dropdown-menu"></div>
+                        <div id="folderDropdownMenu" class="custom-dropdown-menu"></div>
                     </div>
+                </div>
 
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-medium text-slate-600 mb-1.5">Category (ប្រភេទ)</label>
-                            <select id="songCategory" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500 font-medium">
-                                <option value="ចម្រៀងសម័យទំនើប">ចម្រៀងសម័យទំនើប (Modern)</option>
-                                <option value="ចម្រៀងសម័យដើម">ចម្រៀងសម័យដើម (Classic)</option>
-                                <option value="ចម្រៀង Rap">ចម្រៀង Rap (Rap)</option>
-                                <option value="ចម្រៀង Sad">ចម្រៀង Sad (Sad)</option>
-                                <option value="ចម្រៀងស្រុកស្រែ">ចម្រៀងស្រុកស្រែ (Countryside)</option>
-                                <option value="ចម្រៀង រ៉ូមេនទិច">ចម្រៀង រ៉ូមេនទិច (Romance)</option>
-                                <option value="ចម្រៀងប្រពៃណី">ចម្រៀងប្រពៃណី (Traditional)</option>
-                            </select>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1.5">Album Art / Singer Image</label>
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2">
+                            <input type="text" id="songImage" oninput="refreshImagePreview(this.value)" placeholder="Auto-fills from singers/{folder}/profile.jpg"
+                                class="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-brand-500">
+                            <label for="imageFile" class="cursor-pointer px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-medium rounded-xl transition flex items-center gap-1.5 whitespace-nowrap">
+                                <i class="fa-solid fa-upload"></i> Upload Image
+                            </label>
+                            <input type="file" id="imageFile" accept="image/*" class="hidden" onchange="handleImageFileSelected(this)">
                         </div>
-                        <div class="relative">
-                            <label class="block text-xs font-medium text-slate-600 mb-1.5">R2 Folder Name</label>
-                            <div class="relative">
-                                <input type="text" id="songFolder" required placeholder="Artist folder..."
-                                    class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 pr-10 text-sm text-slate-800 focus:outline-none focus:border-brand-500"
-                                    oninput="onFolderInputChanged(this)" onfocus="showFolderDropdown()" autocomplete="off">
-                                <div onclick="toggleFolderDropdown()" class="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-slate-400 hover:text-brand-600 px-1">
-                                    <i class="fa-solid fa-chevron-down text-xs"></i>
-                                </div>
-                            </div>
-                            <div id="folderDropdownMenu" class="custom-dropdown-menu"></div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1.5">Album Art / Singer Image</label>
-                        <div class="space-y-2">
-                            <div class="flex items-center gap-2">
-                                <input type="text" id="songImage" oninput="refreshImagePreview(this.value)" placeholder="Auto-fills from singers/{folder}/profile.jpg"
-                                    class="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-brand-500">
-                                <label for="imageFile" class="cursor-pointer px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-medium rounded-xl transition flex items-center gap-1.5 whitespace-nowrap">
-                                    <i class="fa-solid fa-upload"></i> Upload Image
-                                </label>
-                                <input type="file" id="imageFile" accept="image/*" class="hidden" onchange="handleImageFileSelected(this)">
-                            </div>
-                            <!-- Live Thumbnail Preview Badge -->
-                            <div id="imagePreviewContainer" class="flex items-center gap-2.5 p-2 bg-slate-50 border border-slate-200 rounded-xl">
-                                <img id="imagePreviewThumb" src="" alt="Cover Preview" class="w-10 h-10 rounded-lg object-cover bg-slate-200 border border-slate-300 shrink-0" onerror="handleImageError(this)">
-                                <div class="overflow-hidden">
-                                    <p class="text-[11px] font-semibold text-slate-700 truncate" id="imagePreviewStatus">No image loaded</p>
-                                    <p class="text-[9px] text-slate-400 truncate" id="imagePreviewUrlText">Select an artist or enter folder name</p>
-                                </div>
+                        <div id="imagePreviewContainer" class="flex items-center gap-2.5 p-2 bg-slate-50 border border-slate-200 rounded-xl">
+                            <img id="imagePreviewThumb" src="" alt="Cover Preview" class="w-10 h-10 rounded-lg object-cover bg-slate-200 border border-slate-300 shrink-0" onerror="handleImageError(this)">
+                            <div class="overflow-hidden">
+                                <p class="text-[11px] font-semibold text-slate-700 truncate" id="imagePreviewStatus">No image loaded</p>
+                                <p class="text-[9px] text-slate-400 truncate" id="imagePreviewUrlText">Select an artist or enter folder name</p>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <button type="submit" id="uploadBtn" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-brand-600/20 transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-cloud-arrow-up"></i> Upload MP3 & Add to Catalog
-                    </button>
-                </form>
-            </div>
+                <!-- Upload Progress Bar with % and Estimated Time -->
+                <div id="uploadProgressContainer" class="hidden bg-slate-50 border border-brand-200 rounded-xl p-3 space-y-2">
+                    <div class="flex justify-between items-center text-xs">
+                        <span id="uploadProgressTitle" class="font-semibold text-brand-700 flex items-center gap-1.5">
+                            <i class="fa-solid fa-spinner fa-spin"></i> Uploading to R2...
+                        </span>
+                        <span id="uploadProgressPercent" class="font-bold font-mono text-brand-600">0%</span>
+                    </div>
+                    
+                    <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                        <div id="uploadProgressBar" class="bg-brand-600 h-full rounded-full transition-all duration-150" style="width: 0%"></div>
+                    </div>
+
+                    <div class="flex justify-between items-center text-[10px] text-slate-500 font-mono">
+                        <span id="uploadBytesText">0 MB / 0 MB</span>
+                        <span id="uploadSpeedEtaText">-- KB/s • ETA: --s</span>
+                    </div>
+                </div>
+
+                <button type="submit" id="uploadBtn" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-brand-600/20 transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload MP3 & Add to Catalog
+                </button>
+            </form>
         </div>
+    </div>
 
-        <!-- Right Column: Songs List & JSON Preview -->
-        <div class="lg:col-span-7 flex flex-col space-y-6">
+    <!-- Right Column: Songs List & JSON Preview -->
+    <div class="lg:col-span-7 flex flex-col space-y-6">
 
-            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex-1 flex flex-col">
-                
-                <!-- Header with Title & Action Buttons -->
-                <div class="flex items-center justify-between gap-3 mb-3">
-                    <div class="flex items-center gap-2">
-                        <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2">
-                            <i class="fa-solid fa-list-music text-brand-600"></i> R2 Songs Catalog
-                            <span id="songCountBadge" class="ml-1 text-xs px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-700 border border-brand-200 font-mono">0</span>
-                        </h2>
-                    </div>
-
-                    <div class="flex items-center gap-2">
-                        <button onclick="resetAllFilters()" class="text-xs text-slate-600 hover:text-slate-800 transition flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 border border-slate-200">
-                            <i class="fa-solid fa-arrow-rotate-left"></i> Reset
-                        </button>
-                        <button onclick="clearAllSongs()" class="text-xs text-rose-600 hover:text-rose-700 transition flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-rose-50 border border-rose-200">
-                            <i class="fa-solid fa-trash-can"></i> Clear All
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Multi-Filter Bar (Title, Category, Singer, Size) -->
-                <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 mb-4 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
-                    <!-- Title Filter -->
-                    <div class="relative">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <input type="text" id="filterTitleInput" placeholder="Filter title..." oninput="applyAllFilters()"
-                            class="w-full bg-white border border-slate-300 rounded-lg pl-8 pr-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-brand-500">
-                    </div>
-
-                    <!-- Category Filter -->
-                    <div>
-                        <select id="filterCategorySelect" onchange="applyAllFilters()"
-                            class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-brand-500">
-                            <option value="">All Categories</option>
-                            <option value="ចម្រៀងសម័យទំនើប">ចម្រៀងសម័យទំនើប</option>
-                            <option value="ចម្រៀងសម័យដើម">ចម្រៀងសម័យដើម</option>
-                            <option value="ចម្រៀង Rap">ចម្រៀង Rap</option>
-                            <option value="ចម្រៀង Sad">ចម្រៀង Sad</option>
-                            <option value="ចម្រៀងស្រុកស្រែ">ចម្រៀងស្រុកស្រែ</option>
-                            <option value="ចម្រៀង រ៉ូមេនទិច">ចម្រៀង រ៉ូមេនទិច</option>
-                            <option value="ចម្រៀងប្រពៃណី">ចម្រៀងប្រពៃណី</option>
-                        </select>
-                    </div>
-
-                    <!-- Singer Filter -->
-                    <div>
-                        <select id="filterSingerSelect" onchange="applyAllFilters()"
-                            class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-brand-500">
-                            <option value="">All Singers</option>
-                        </select>
-                    </div>
-
-                    <!-- Size Filter -->
-                    <div>
-                        <select id="filterSizeSelect" onchange="applyAllFilters()"
-                            class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-brand-500">
-                            <option value="">All Sizes</option>
-                            <option value="small">&lt; 4 MB</option>
-                            <option value="medium">4 – 8 MB</option>
-                            <option value="large">&gt; 8 MB</option>
-                            <option value="sort_desc">Sort: Largest first</option>
-                            <option value="sort_asc">Sort: Smallest first</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Table Container -->
-                <div class="flex-1 overflow-x-auto rounded-xl border border-slate-200 bg-slate-50 min-h-[380px]">
-                    <table class="w-full text-left text-sm text-slate-700">
-                        <thead class="bg-slate-100 text-xs uppercase text-slate-500 sticky top-0 border-b border-slate-200">
-                            <tr>
-                                <th scope="col" class="px-4 py-3">Title & Artist</th>
-                                <th scope="col" class="px-4 py-3">Category</th>
-                                <th scope="col" class="px-4 py-3">Size</th>
-                                <th scope="col" class="px-4 py-3">R2 Path</th>
-                                <th scope="col" class="px-4 py-3 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="songsTableBody" class="divide-y divide-slate-200">
-                            <!-- Populated dynamically -->
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Pagination Footer -->
-                <div class="flex items-center justify-between pt-3 border-t border-slate-100 mt-2 text-xs text-slate-500">
-                    <span id="pageInfoText">Showing 0 to 0 of 0</span>
-                    <div class="flex items-center gap-1">
-                        <button onclick="changePage(-1)" id="prevPageBtn" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">
-                            <i class="fa-solid fa-chevron-left"></i> Prev
-                        </button>
-                        <span id="pageBadge" class="px-2 font-mono font-medium text-slate-700">1</span>
-                        <button onclick="changePage(1)" id="nextPageBtn" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">
-                            Next <i class="fa-solid fa-chevron-right"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col">
-                <div class="flex items-center justify-between mb-3">
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex-1 flex flex-col">
+            
+            <div class="flex items-center justify-between gap-3 mb-3">
+                <div class="flex items-center gap-2">
                     <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2">
-                        <i class="fa-solid fa-code text-brand-600"></i> Live <code class="text-brand-600 font-mono text-sm">songs.json</code> Preview
+                        <i class="fa-solid fa-list-music text-brand-600"></i> R2 Songs Catalog
+                        <span id="songCountBadge" class="ml-1 text-xs px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-700 border border-brand-200 font-mono">0</span>
                     </h2>
-                    <div id="statusMessage" class="text-xs font-medium text-emerald-600"></div>
                 </div>
-                <div class="relative">
-                    <pre id="jsonPreview" class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-xs font-mono text-brand-300 h-36 overflow-y-auto selection:bg-brand-500 selection:text-white">[]</pre>
+
+                <div class="flex items-center gap-2">
+                    <button onclick="resetAllFilters()" class="text-xs text-slate-600 hover:text-slate-800 transition flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 border border-slate-200">
+                        <i class="fa-solid fa-arrow-rotate-left"></i> Reset
+                    </button>
+                    <button onclick="clearAllSongs()" class="text-xs text-rose-600 hover:text-rose-700 transition flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-rose-50 border border-rose-200">
+                        <i class="fa-solid fa-trash-can"></i> Clear All
+                    </button>
                 </div>
             </div>
 
+            <!-- Multi-Filter Bar -->
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 mb-4 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="filterTitleInput" placeholder="Filter title..." oninput="applyAllFilters()"
+                        class="w-full bg-white border border-slate-300 rounded-lg pl-8 pr-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-brand-500">
+                </div>
+
+                <div>
+                    <select id="filterCategorySelect" onchange="applyAllFilters()"
+                        class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-brand-500">
+                        <option value="">All Categories</option>
+                        <option value="ចម្រៀងសម័យទំនើប">ចម្រៀងសម័យទំនើប</option>
+                        <option value="ចម្រៀងសម័យដើម">ចម្រៀងសម័យដើម</option>
+                        <option value="ចម្រៀង Rap">ចម្រៀង Rap</option>
+                        <option value="ចម្រៀង Sad">ចម្រៀង Sad</option>
+                        <option value="ចម្រៀងស្រុកស្រែ">ចម្រៀងស្រុកស្រែ</option>
+                        <option value="ចម្រៀង រ៉ូមេនទិច">ចម្រៀង រ៉ូមេនទិច</option>
+                        <option value="ចម្រៀងប្រពៃណី">ចម្រៀងប្រពៃណី</option>
+                    </select>
+                </div>
+
+                <div>
+                    <select id="filterSingerSelect" onchange="applyAllFilters()"
+                        class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-brand-500">
+                        <option value="">All Singers</option>
+                    </select>
+                </div>
+
+                <div>
+                    <select id="filterSizeSelect" onchange="applyAllFilters()"
+                        class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-brand-500">
+                        <option value="">All Sizes</option>
+                        <option value="small">&lt; 4 MB</option>
+                        <option value="medium">4 – 8 MB</option>
+                        <option value="large">&gt; 8 MB</option>
+                        <option value="sort_desc">Sort: Largest first</option>
+                        <option value="sort_asc">Sort: Smallest first</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Table Container -->
+            <div class="flex-1 overflow-x-auto rounded-xl border border-slate-200 bg-slate-50 min-h-[380px]">
+                <table class="w-full text-left text-sm text-slate-700">
+                    <thead class="bg-slate-100 text-xs uppercase text-slate-500 sticky top-0 border-b border-slate-200">
+                        <tr>
+                            <th scope="col" class="px-4 py-3">Title & Artist</th>
+                            <th scope="col" class="px-4 py-3">Category</th>
+                            <th scope="col" class="px-4 py-3">Size</th>
+                            <th scope="col" class="px-4 py-3">R2 Path</th>
+                            <th scope="col" class="px-4 py-3 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="songsTableBody" class="divide-y divide-slate-200">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination Footer -->
+            <div class="flex items-center justify-between pt-3 border-t border-slate-100 mt-2 text-xs text-slate-500">
+                <span id="pageInfoText">Showing 0 to 0 of 0</span>
+                <div class="flex items-center gap-1">
+                    <button onclick="changePage(-1)" id="prevPageBtn" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-chevron-left"></i> Prev
+                    </button>
+                    <span id="pageBadge" class="px-2 font-mono font-medium text-slate-700">1</span>
+                    <button onclick="changePage(1)" id="nextPageBtn" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">
+                        Next <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
         </div>
-    </main>
 
-    <script>
-        let songsCatalog = [];
-        let filteredCatalog = [];
-        let uploadedImageFile = null;
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-code text-brand-600"></i> Live <code class="text-brand-600 font-mono text-sm">songs.json</code> Preview
+                </h2>
+                <div id="statusMessage" class="text-xs font-medium text-emerald-600"></div>
+            </div>
+            <div class="relative">
+                <pre id="jsonPreview" class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-xs font-mono text-brand-300 h-36 overflow-y-auto selection:bg-brand-500 selection:text-white">[]</pre>
+            </div>
+        </div>
 
-        // Base verified directory names existing on your Cloudflare R2 bucket
-        const knownFolders = [
-            'ថុល សុភិទិ',
-            'នាង ដាវីន',
-            'ប៉ែន រ៉ន',
-            'ព្រាប សុវត្ថិ Vs ពេជ្រ សោភា',
-            'ព្រាប សុវត្ថិ',
-            'ម៉ៅ ហាជី',
-            'សុខ ពិសី',
-            'ស៊ិន ស៊ីសាមុត'
-        ];
+    </div>
+</main>
 
-        let currentPage = 1;
-        const pageSize = 10;
+<script>
+    let songsCatalog = [];
+    let filteredCatalog = [];
+    let r2BucketFolders = [];
+    let uploadedImageFile = null;
 
-        window.addEventListener('DOMContentLoaded', () => {
-            loadCredentials();
-            syncCatalogFromR2();
+    let currentPage = 1;
+    const pageSize = 10;
 
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('#songSinger') && !e.target.closest('#singerDropdownMenu')) {
-                    document.getElementById('singerDropdownMenu').style.display = 'none';
-                }
-                if (!e.target.closest('#songFolder') && !e.target.closest('#folderDropdownMenu')) {
-                    document.getElementById('folderDropdownMenu').style.display = 'none';
-                }
-            });
+    window.addEventListener('DOMContentLoaded', () => {
+        loadCredentials();
+        syncCatalogFromR2();
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#songSinger') && !e.target.closest('#singerDropdownMenu')) {
+                document.getElementById('singerDropdownMenu').style.display = 'none';
+            }
+            if (!e.target.closest('#songFolder') && !e.target.closest('#folderDropdownMenu')) {
+                document.getElementById('folderDropdownMenu').style.display = 'none';
+            }
+        });
+    });
+
+    function normalizeKhmer(str) {
+        if (!str) return '';
+        let s = str
+            .replace(/[\u200B-\u200D\uFEFF]/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+        if (s.includes('សាមុត') || s.toLowerCase().includes('sisamuth') || s.toLowerCase().includes('sisamouth')) {
+            return 'ស៊ីន ស៊ីសាមុត';
+        }
+        return s;
+    }
+
+    function getKhmerRootKey(str) {
+        if (!str) return '';
+        return normalizeKhmer(str)
+            .replace(/[\u17B6-\u17D3\u17DD]/g, '')
+            .toLowerCase()
+            .trim();
+    }
+
+    function getUniqueFolders() {
+        const seen = new Set();
+        const result = [];
+
+        r2BucketFolders.forEach(name => {
+            const clean = normalizeKhmer(name);
+            if (clean && !seen.has(clean)) {
+                seen.add(clean);
+                result.push(clean);
+            }
         });
 
-        // Strips invisible zero-width spaces, collapses whitespaces, and unifies spelling variants
-        function normalizeKhmer(str) {
-            if (!str) return '';
-            let s = str
-                .replace(/[\u200B-\u200D\uFEFF]/g, '') // remove zero-width spaces
-                .replace(/\s+/g, ' ')                  // collapse extra spaces
-                .trim();
-
-            // Unify spelling variations for Sin Sisamuth to always target the existing single folder
-            if (s.includes('សាមុត')) {
-                return 'ស៊ិន ស៊ីសាមុត';
+        songsCatalog.forEach(s => {
+            if (s.url && s.url.includes('/')) {
+                const rawPart = s.url.split('/')[0];
+                const decoded = decodeURIComponent(rawPart);
+                const clean = normalizeKhmer(decoded);
+                if (clean && !seen.has(clean)) {
+                    seen.add(clean);
+                    result.push(clean);
+                }
             }
+        });
 
-            return s;
+        const defaultBase = ['ស៊ីន ស៊ីសាមុត', 'សុខ ពិសី', 'ម៉ៅ ហាជី', 'ព្រាប សុវត្ថិ', 'ប៉ែន រ៉ន', 'នាង ដាវីន', 'ថុល សុភិទិ'];
+        defaultBase.forEach(def => {
+            const clean = normalizeKhmer(def);
+            if (clean && !seen.has(clean)) {
+                seen.add(clean);
+                result.push(clean);
+            }
+        });
+
+        return result.sort((a, b) => a.localeCompare(b, 'km'));
+    }
+
+    function findExistingFolderMatch(rawName) {
+        const clean = normalizeKhmer(rawName);
+        if (!clean) return '';
+
+        const folders = getUniqueFolders();
+
+        const exact = folders.find(f => f === clean);
+        if (exact) return exact;
+
+        const normalizedMatch = folders.find(f => normalizeKhmer(f) === clean);
+        if (normalizedMatch) return normalizedMatch;
+
+        const subMatch = folders.find(f => clean.includes(f) || f.includes(clean));
+        if (subMatch) return subMatch;
+
+        const rootKey = getKhmerRootKey(clean);
+        if (rootKey) {
+            const rootMatch = folders.find(f => getKhmerRootKey(f) === rootKey);
+            if (rootMatch) return rootMatch;
         }
 
-        // Checks whether a folder name matches an existing folder in the bucket or catalog
-        function findExistingFolderMatch(rawName) {
-            const cleanTarget = normalizeKhmer(rawName).toLowerCase();
-            const allAvailableFolders = getUniqueFolders();
+        return clean;
+    }
 
-            // 1. Direct exact or normalized match
-            for (let f of allAvailableFolders) {
-                if (normalizeKhmer(f).toLowerCase() === cleanTarget) {
-                    return f;
+    function getUniqueSingers() {
+        const seen = new Set();
+        const result = [];
+
+        getUniqueFolders().forEach(f => {
+            const clean = normalizeKhmer(f);
+            if (clean && !seen.has(clean)) {
+                seen.add(clean);
+                result.push(clean);
+            }
+        });
+
+        songsCatalog.forEach(s => {
+            const clean = normalizeKhmer(s.singer);
+            if (clean && !seen.has(clean)) {
+                seen.add(clean);
+                result.push(clean);
+            }
+        });
+
+        return result.sort((a, b) => a.localeCompare(b, 'km'));
+    }
+
+    function formatBytes(bytes) {
+        if (!bytes || isNaN(bytes) || bytes <= 0) return '0 Bytes';
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(1024));
+        return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + sizes[i];
+    }
+
+    function handleImageError(img) {
+        img.src = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500';
+        const status = document.getElementById('imagePreviewStatus');
+        status.textContent = "⚠ Image not found at URL";
+        status.className = "text-[11px] font-semibold text-amber-600 truncate";
+    }
+
+    function refreshImagePreview(url) {
+        const thumb = document.getElementById('imagePreviewThumb');
+        const status = document.getElementById('imagePreviewStatus');
+        const urlText = document.getElementById('imagePreviewUrlText');
+
+        if (url && url.startsWith('http')) {
+            thumb.src = url;
+            status.textContent = "✓ Image Attached";
+            status.className = "text-[11px] font-semibold text-emerald-600 truncate";
+            urlText.textContent = url;
+        } else {
+            thumb.src = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500";
+            status.textContent = "No image loaded";
+            status.className = "text-[11px] font-semibold text-slate-700 truncate";
+            urlText.textContent = "Select an artist or enter folder name";
+        }
+    }
+
+    function updateSingerImageUrl(targetFolder) {
+        const folderVal = (targetFolder || document.getElementById('songFolder').value || document.getElementById('songSinger').value).trim();
+        if (!folderVal) return;
+
+        const existingFolder = findExistingFolderMatch(folderVal);
+        const baseUrl = document.getElementById('r2BaseUrl').value.trim().replace(/\/+$/, '');
+        const imageInput = document.getElementById('songImage');
+
+        const cleanTarget = normalizeKhmer(existingFolder).toLowerCase();
+        const existingSong = songsCatalog.find(s => 
+            (s.singer && normalizeKhmer(s.singer).toLowerCase() === cleanTarget) ||
+            (s.url && normalizeKhmer(decodeURIComponent(s.url)).toLowerCase().startsWith(cleanTarget + '/'))
+        );
+
+        if (existingSong && existingSong.image && !existingSong.image.includes('unsplash.com')) {
+            imageInput.value = existingSong.image;
+        } else if (baseUrl) {
+            imageInput.value = `${baseUrl}/singers/${encodeURIComponent(existingFolder)}/profile.jpg`;
+        }
+
+        imageInput.scrollLeft = imageInput.scrollWidth;
+        refreshImagePreview(imageInput.value);
+    }
+
+    function applySingerProfile(rawInput) {
+        const input = (rawInput || '').trim();
+        if (!input) return;
+
+        const folderInput = document.getElementById('songFolder');
+        const matchedFolder = findExistingFolderMatch(input);
+
+        folderInput.value = matchedFolder;
+        updateSingerImageUrl(matchedFolder);
+    }
+
+    function onSingerInputChanged(input) {
+        const val = input.value.trim();
+        if (val) applySingerProfile(val);
+        renderSingerDropdown(val);
+    }
+
+    function onFolderInputChanged(input) {
+        renderFolderDropdown(input.value);
+        updateSingerImageUrl(input.value);
+    }
+
+    function selectSinger(name) {
+        const target = findExistingFolderMatch(name);
+        document.getElementById('songSinger').value = target;
+        document.getElementById('singerDropdownMenu').style.display = 'none';
+        applySingerProfile(target);
+    }
+
+    function selectFolder(name) {
+        document.getElementById('songFolder').value = name;
+        document.getElementById('folderDropdownMenu').style.display = 'none';
+        updateSingerImageUrl(name);
+    }
+
+    function cleanString(str) {
+        if (!str) return '';
+        return str
+            .replace(/\.mp3$/i, '')
+            .replace(/["'`«»„“”‘’]/g, '')
+            .replace(/[,]/g, '')
+            .trim();
+    }
+
+    function handleFileSelected(input) {
+        const label = document.getElementById('fileLabelText');
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            label.textContent = `Selected: ${file.name} (${formatBytes(file.size)})`;
+            label.className = "text-xs text-brand-700 font-bold mb-0.5 truncate max-w-xs";
+
+            let baseName = file.name.replace(/\.[^/.]+$/, "");
+            let title = baseName;
+            let singer = "";
+
+            const separators = [" - ", " – ", " | ", "_", ", "];
+            for (let sep of separators) {
+                if (baseName.includes(sep)) {
+                    const parts = baseName.split(sep);
+                    title = parts[0].trim();
+                    singer = parts.slice(1).join(" ").trim();
+                    break;
                 }
             }
 
-            // 2. Partial inclusion match (e.g. "ស៊ិន ស៊ីសាមុត" matches "ស៊ិន ស៊ីសាមុត")
-            for (let f of allAvailableFolders) {
-                const normF = normalizeKhmer(f).toLowerCase();
-                if (cleanTarget.includes(normF) || normF.includes(cleanTarget)) {
-                    return f;
-                }
+            title = cleanString(title);
+            singer = cleanString(singer);
+
+            document.getElementById('songTitle').value = title;
+            if (singer) {
+                const matched = findExistingFolderMatch(singer);
+                document.getElementById('songSinger').value = matched;
+                applySingerProfile(matched);
             }
-
-            // No existing match found: return the cleaned name as a brand new folder
-            return cleanString(rawName);
+        } else {
+            label.textContent = "Click to browse or drop MP3 file here";
+            label.className = "text-xs text-slate-700 font-semibold mb-0.5";
         }
+    }
 
-        function formatBytes(bytes) {
-            if (!bytes || isNaN(bytes) || bytes <= 0) return '--';
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(1024));
-            return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + sizes[i];
-        }
-
-        function handleImageError(img) {
-            img.src = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500';
-            const status = document.getElementById('imagePreviewStatus');
-            status.textContent = "⚠ Image not found at URL";
-            status.className = "text-[11px] font-semibold text-amber-600 truncate";
-        }
-
-        function refreshImagePreview(url) {
+    function handleImageFileSelected(input) {
+        if (input.files && input.files[0]) {
+            uploadedImageFile = input.files[0];
+            document.getElementById('songImage').value = `[Selected local file: ${uploadedImageFile.name}]`;
             const thumb = document.getElementById('imagePreviewThumb');
-            const status = document.getElementById('imagePreviewStatus');
-            const urlText = document.getElementById('imagePreviewUrlText');
+            thumb.src = URL.createObjectURL(uploadedImageFile);
+            document.getElementById('imagePreviewStatus').textContent = "✓ Local Image Ready";
+            document.getElementById('imagePreviewStatus').className = "text-[11px] font-semibold text-emerald-600 truncate";
+            document.getElementById('imagePreviewUrlText').textContent = uploadedImageFile.name;
+            showStatus('Image file ready for upload!', 'emerald');
+        }
+    }
 
-            if (url && url.startsWith('http')) {
-                thumb.src = url;
-                status.textContent = "✓ Image Attached";
-                status.className = "text-[11px] font-semibold text-emerald-600 truncate";
-                urlText.textContent = decodeURIComponent(url);
-            } else {
-                thumb.src = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500";
-                status.textContent = "No image loaded";
-                status.className = "text-[11px] font-semibold text-slate-700 truncate";
-                urlText.textContent = "Select an artist or enter folder name";
+    function saveCredentials() {
+        localStorage.setItem('r2_base_url', document.getElementById('r2BaseUrl').value);
+        localStorage.setItem('r2_account_id', document.getElementById('r2AccountId').value);
+        localStorage.setItem('r2_access_key', document.getElementById('r2AccessKey').value);
+        localStorage.setItem('r2_secret_key', document.getElementById('r2SecretKey').value);
+        localStorage.setItem('r2_bucket_name', document.getElementById('r2BucketName').value);
+        showStatus('Credentials saved locally!', 'emerald');
+        loadBucketLiveFolders();
+    }
+
+    function loadCredentials() {
+        if (localStorage.getItem('r2_base_url')) document.getElementById('r2BaseUrl').value = localStorage.getItem('r2_base_url');
+        if (localStorage.getItem('r2_account_id')) document.getElementById('r2AccountId').value = localStorage.getItem('r2_account_id');
+        if (localStorage.getItem('r2_access_key')) document.getElementById('r2AccessKey').value = localStorage.getItem('r2_access_key');
+        if (localStorage.getItem('r2_secret_key')) document.getElementById('r2SecretKey').value = localStorage.getItem('r2_secret_key');
+        if (localStorage.getItem('r2_bucket_name')) document.getElementById('r2BucketName').value = localStorage.getItem('r2_bucket_name');
+    }
+
+    function getS3Client() {
+        const accountId = document.getElementById('r2AccountId').value.trim();
+        const accessKeyId = document.getElementById('r2AccessKey').value.trim();
+        const secretAccessKey = document.getElementById('r2SecretKey').value.trim();
+
+        if (!accountId || !accessKeyId || !secretAccessKey) {
+            return null;
+        }
+
+        AWS.config.update({
+            accessKeyId: accessKeyId,
+            secretAccessKey: secretAccessKey,
+            region: 'us-east-1'
+        });
+
+        return new AWS.S3({
+            endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+            signatureVersion: 'v4',
+            s3ForcePathStyle: true
+        });
+    }
+
+    async function loadBucketLiveFolders() {
+        const s3 = getS3Client();
+        if (!s3) return;
+
+        const bucketName = document.getElementById('r2BucketName').value.trim();
+        try {
+            const res = await s3.listObjectsV2({
+                Bucket: bucketName,
+                Delimiter: '/'
+            }).promise();
+
+            if (res && res.CommonPrefixes) {
+                r2BucketFolders = res.CommonPrefixes
+                    .map(p => p.Prefix.replace(/\/$/, ''))
+                    .filter(p => p && p !== 'singers' && !p.startsWith('%'));
             }
+            updateDropdownLists();
+            populateSingerFilterDropdown();
+        } catch (e) {
+            console.warn('Could not query live R2 bucket folders:', e);
+        }
+    }
+
+    async function fetchMissingSizes() {
+        const s3 = getS3Client();
+        const baseUrl = document.getElementById('r2BaseUrl').value.trim().replace(/\/+$/, '');
+        const bucketName = document.getElementById('r2BucketName').value.trim();
+
+        const missing = songsCatalog.filter(s => !s.size || s.size <= 0);
+        if (missing.length === 0) {
+            showStatus('All songs already have file sizes!', 'emerald');
+            return;
         }
 
-        function updateSingerImageUrl(targetFolder) {
-            const folderVal = (targetFolder || document.getElementById('songFolder').value || document.getElementById('songSinger').value).trim();
-            if (!folderVal) return;
+        showStatus(`Fetching sizes for ${missing.length} songs...`, 'blue');
+        let updatedCount = 0;
 
-            const matchedFolder = findExistingFolderMatch(folderVal);
-            const baseUrl = document.getElementById('r2BaseUrl').value.trim().replace(/\/+$/, '');
-            const imageInput = document.getElementById('songImage');
+        if (s3) {
+            try {
+                let continuationToken = null;
+                const r2ObjectsMap = new Map();
 
-            const cleanTarget = normalizeKhmer(matchedFolder).toLowerCase();
-            const existing = songsCatalog.find(s => 
-                (s.singer && normalizeKhmer(s.singer).toLowerCase() === cleanTarget) ||
-                (s.url && normalizeKhmer(decodeURIComponent(s.url)).toLowerCase().startsWith(cleanTarget + '/'))
-            );
+                do {
+                    const res = await s3.listObjectsV2({
+                        Bucket: bucketName,
+                        ContinuationToken: continuationToken
+                    }).promise();
 
-            if (existing && existing.image && !existing.image.includes('unsplash.com')) {
-                imageInput.value = existing.image;
-            } else if (baseUrl) {
-                // Public browser image URLs encode Khmer characters
-                imageInput.value = `${baseUrl}/singers/${encodeURIComponent(matchedFolder)}/profile.jpg`;
-            }
-
-            imageInput.scrollLeft = imageInput.scrollWidth;
-            refreshImagePreview(imageInput.value);
-        }
-
-        function applySingerProfile(rawInput) {
-            const input = (rawInput || '').trim();
-            if (!input) return;
-
-            const folderInput = document.getElementById('songFolder');
-            const matchedFolder = findExistingFolderMatch(input);
-
-            folderInput.value = matchedFolder;
-            updateSingerImageUrl(matchedFolder);
-        }
-
-        function onSingerInputChanged(input) {
-            const val = input.value.trim();
-            if (val) applySingerProfile(val);
-            renderSingerDropdown(val);
-        }
-
-        function onFolderInputChanged(input) {
-            renderFolderDropdown(input.value);
-            updateSingerImageUrl(input.value);
-        }
-
-        function selectSinger(name) {
-            document.getElementById('songSinger').value = name;
-            document.getElementById('singerDropdownMenu').style.display = 'none';
-            applySingerProfile(name);
-        }
-
-        function selectFolder(name) {
-            document.getElementById('songFolder').value = name;
-            document.getElementById('folderDropdownMenu').style.display = 'none';
-            updateSingerImageUrl(name);
-        }
-
-        function cleanString(str) {
-            if (!str) return '';
-            return str
-                .replace(/\.mp3$/i, '')
-                .replace(/["'`«»„“”‘’]/g, '')
-                .replace(/[,]/g, '')
-                .trim();
-        }
-
-        function handleFileSelected(input) {
-            const label = document.getElementById('fileLabelText');
-            if (input.files && input.files[0]) {
-                const file = input.files[0];
-                label.textContent = `Selected: ${file.name} (${formatBytes(file.size)})`;
-                label.className = "text-xs text-brand-700 font-bold mb-0.5 truncate max-w-xs";
-
-                let baseName = file.name.replace(/\.[^/.]+$/, "");
-                let title = baseName;
-                let singer = "";
-
-                const separators = [" - ", " – ", " | ", "_", ", "];
-                for (let sep of separators) {
-                    if (baseName.includes(sep)) {
-                        const parts = baseName.split(sep);
-                        title = parts[0].trim();
-                        singer = parts.slice(1).join(" ").trim();
-                        break;
+                    if (res && res.Contents) {
+                        res.Contents.forEach(obj => {
+                            r2ObjectsMap.set(obj.Key, obj.Size);
+                            r2ObjectsMap.set(decodeURIComponent(obj.Key), obj.Size);
+                        });
                     }
-                }
+                    continuationToken = res.IsTruncated ? res.NextContinuationToken : null;
+                } while (continuationToken);
 
-                title = cleanString(title);
-                singer = cleanString(singer);
+                for (let song of missing) {
+                    const rawKey = song.url.startsWith('http') 
+                        ? song.url.split('.dev/').pop() 
+                        : song.url;
+                    const decodedKey = decodeURIComponent(rawKey);
 
-                document.getElementById('songTitle').value = title;
-                if (singer) {
-                    document.getElementById('songSinger').value = singer;
-                    applySingerProfile(singer);
-                }
-            } else {
-                label.textContent = "Click to browse or drop MP3 file here";
-                label.className = "text-xs text-slate-700 font-semibold mb-0.5";
-            }
-        }
-
-        function handleImageFileSelected(input) {
-            if (input.files && input.files[0]) {
-                uploadedImageFile = input.files[0];
-                document.getElementById('songImage').value = `[Selected local file: ${uploadedImageFile.name}]`;
-                const thumb = document.getElementById('imagePreviewThumb');
-                thumb.src = URL.createObjectURL(uploadedImageFile);
-                document.getElementById('imagePreviewStatus').textContent = "✓ Local Image Ready";
-                document.getElementById('imagePreviewStatus').className = "text-[11px] font-semibold text-emerald-600 truncate";
-                document.getElementById('imagePreviewUrlText').textContent = uploadedImageFile.name;
-                showStatus('Image file ready for upload!', 'emerald');
-            }
-        }
-
-        function saveCredentials() {
-            localStorage.setItem('r2_base_url', document.getElementById('r2BaseUrl').value);
-            localStorage.setItem('r2_account_id', document.getElementById('r2AccountId').value);
-            localStorage.setItem('r2_access_key', document.getElementById('r2AccessKey').value);
-            localStorage.setItem('r2_secret_key', document.getElementById('r2SecretKey').value);
-            localStorage.setItem('r2_bucket_name', document.getElementById('r2BucketName').value);
-            showStatus('Credentials saved locally!', 'emerald');
-        }
-
-        function loadCredentials() {
-            if (localStorage.getItem('r2_base_url')) document.getElementById('r2BaseUrl').value = localStorage.getItem('r2_base_url');
-            if (localStorage.getItem('r2_account_id')) document.getElementById('r2AccountId').value = localStorage.getItem('r2_account_id');
-            if (localStorage.getItem('r2_access_key')) document.getElementById('r2AccessKey').value = localStorage.getItem('r2_access_key');
-            if (localStorage.getItem('r2_secret_key')) document.getElementById('r2SecretKey').value = localStorage.getItem('r2_secret_key');
-            if (localStorage.getItem('r2_bucket_name')) document.getElementById('r2BucketName').value = localStorage.getItem('r2_bucket_name');
-        }
-
-        function getS3Client() {
-            const accountId = document.getElementById('r2AccountId').value.trim();
-            const accessKeyId = document.getElementById('r2AccessKey').value.trim();
-            const secretAccessKey = document.getElementById('r2SecretKey').value.trim();
-
-            if (!accountId || !accessKeyId || !secretAccessKey) {
-                alert('Please enter your Cloudflare R2 Account ID, Access Key ID, and Secret Access Key.');
-                return null;
-            }
-
-            AWS.config.update({
-                accessKeyId: accessKeyId,
-                secretAccessKey: secretAccessKey,
-                region: 'us-east-1'
-            });
-
-            return new AWS.S3({
-                endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-                signatureVersion: 'v4',
-                s3ForcePathStyle: true
-            });
-        }
-
-        async function fetchMissingSizes() {
-            const s3 = getS3Client();
-            const baseUrl = document.getElementById('r2BaseUrl').value.trim().replace(/\/+$/, '');
-            const bucketName = document.getElementById('r2BucketName').value.trim();
-
-            const missing = songsCatalog.filter(s => !s.size || s.size <= 0);
-            if (missing.length === 0) {
-                showStatus('All songs already have file sizes!', 'emerald');
-                return;
-            }
-
-            showStatus(`Fetching sizes for ${missing.length} songs...`, 'blue');
-            let updatedCount = 0;
-
-            if (s3) {
-                try {
-                    let continuationToken = null;
-                    const r2ObjectsMap = new Map();
-
-                    do {
-                        const res = await s3.listObjectsV2({
-                            Bucket: bucketName,
-                            ContinuationToken: continuationToken
-                        }).promise();
-
-                        if (res && res.Contents) {
-                            res.Contents.forEach(obj => {
-                                r2ObjectsMap.set(obj.Key, obj.Size);
-                                r2ObjectsMap.set(decodeURIComponent(obj.Key), obj.Size);
-                            });
-                        }
-                        continuationToken = res.IsTruncated ? res.NextContinuationToken : null;
-                    } while (continuationToken);
-
-                    for (let song of missing) {
-                        const rawKey = song.url.startsWith('http') 
-                            ? song.url.split('.dev/').pop() 
-                            : song.url;
-                        const decodedKey = decodeURIComponent(rawKey);
-
-                        if (r2ObjectsMap.has(rawKey)) {
-                            song.size = r2ObjectsMap.get(rawKey);
-                            updatedCount++;
-                        } else if (r2ObjectsMap.has(decodedKey)) {
-                            song.size = r2ObjectsMap.get(decodedKey);
-                            updatedCount++;
-                        }
-                    }
-                } catch (err) {
-                    console.warn('Batch lookup failed, trying direct head fallback:', err);
-                }
-            }
-
-            // Fallback for remaining songs via public URL
-            const remaining = songsCatalog.filter(s => !s.size || s.size <= 0);
-            for (let song of remaining) {
-                try {
-                    const cleanPath = decodeURIComponent(song.url.startsWith('http') ? song.url.split('.dev/').pop() : song.url);
-                    const fullUrl = `${baseUrl}/${encodeURIComponent(cleanPath.split('/')[0])}/${encodeURIComponent(cleanPath.split('/').slice(1).join('/'))}`;
-
-                    const res = await fetch(fullUrl, { method: 'HEAD' });
-                    const lengthHeader = res.headers.get('content-length');
-                    if (lengthHeader) {
-                        song.size = parseInt(lengthHeader, 10);
+                    if (r2ObjectsMap.has(rawKey)) {
+                        song.size = r2ObjectsMap.get(rawKey);
+                        updatedCount++;
+                    } else if (r2ObjectsMap.has(decodedKey)) {
+                        song.size = r2ObjectsMap.get(decodedKey);
                         updatedCount++;
                     }
-                } catch (e) {
-                    console.warn(`Could not fetch size for ${song.title}:`, e);
                 }
-            }
-
-            applyAllFilters();
-            showStatus(`Retrieved sizes for ${updatedCount} songs! Click 'Publish to R2' to save.`, 'emerald');
-        }
-
-        async function syncCatalogFromR2() {
-            const baseUrl = document.getElementById('r2BaseUrl').value.trim();
-            try {
-                showStatus('Syncing songs.json from R2...', 'blue');
-                const response = await fetch(`${baseUrl}/songs.json?t=${Date.now()}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    if (Array.isArray(data)) {
-                        songsCatalog = data;
-                        applyAllFilters();
-                        updateDropdownLists();
-                        populateSingerFilterDropdown();
-                        showStatus('Successfully synced songs.json from R2!', 'emerald');
-
-                        const hasMissingSizes = songsCatalog.some(s => !s.size || s.size <= 0);
-                        if (hasMissingSizes) {
-                            fetchMissingSizes();
-                        }
-                        return;
-                    }
-                }
-                showStatus('No remote songs.json found yet. Starting empty.', 'slate');
             } catch (err) {
-                console.log('Could not fetch remote songs.json:', err);
-                showStatus('Offline mode / empty catalog.', 'slate');
+                console.warn('Batch lookup fallback:', err);
             }
         }
 
-        function populateSingerFilterDropdown() {
-            const select = document.getElementById('filterSingerSelect');
-            const currentVal = select.value;
-            const singers = getUniqueSingers();
-
-            select.innerHTML = '<option value="">All Singers</option>' +
-                singers.map(s => `<option value="${s.replace(/"/g, '&quot;')}">${s}</option>`).join('');
-
-            if (singers.includes(currentVal)) {
-                select.value = currentVal;
-            }
-        }
-
-        function applyAllFilters() {
-            const titleQuery = (document.getElementById('filterTitleInput')?.value || '').trim().toLowerCase();
-            const categoryQuery = (document.getElementById('filterCategorySelect')?.value || '').trim().toLowerCase();
-            const singerQuery = (document.getElementById('filterSingerSelect')?.value || '').trim().toLowerCase();
-            const sizeOption = document.getElementById('filterSizeSelect')?.value || '';
-
-            filteredCatalog = songsCatalog.filter(song => {
-                if (titleQuery && !song.title.toLowerCase().includes(titleQuery)) {
-                    return false;
-                }
-
-                if (categoryQuery && (!song.category || !song.category.toLowerCase().includes(categoryQuery))) {
-                    return false;
-                }
-
-                if (singerQuery) {
-                    const sName = normalizeKhmer(song.singer || '').toLowerCase();
-                    const sUrl = normalizeKhmer(decodeURIComponent(song.url || '')).toLowerCase();
-                    if (!sName.includes(singerQuery) && !sUrl.includes(singerQuery)) {
-                        return false;
-                    }
-                }
-
-                const bytes = Number(song.size) || 0;
-                if (sizeOption === 'small' && bytes >= 4 * 1024 * 1024) return false;
-                if (sizeOption === 'medium' && (bytes < 4 * 1024 * 1024 || bytes > 8 * 1024 * 1024)) return false;
-                if (sizeOption === 'large' && bytes <= 8 * 1024 * 1024) return false;
-
-                return true;
-            });
-
-            if (sizeOption === 'sort_desc') {
-                filteredCatalog.sort((a, b) => (Number(b.size) || 0) - (Number(a.size) || 0));
-            } else if (sizeOption === 'sort_asc') {
-                filteredCatalog.sort((a, b) => (Number(a.size) || 0) - (Number(b.size) || 0));
-            }
-
-            currentPage = 1;
-            renderTable();
-        }
-
-        function resetAllFilters() {
-            document.getElementById('filterTitleInput').value = '';
-            document.getElementById('filterCategorySelect').value = '';
-            document.getElementById('filterSingerSelect').value = '';
-            document.getElementById('filterSizeSelect').value = '';
-            applyAllFilters();
-        }
-
-        function changePage(direction) {
-            const maxPage = Math.ceil(filteredCatalog.length / pageSize) || 1;
-            currentPage = Math.max(1, Math.min(currentPage + direction, maxPage));
-            renderTable();
-        }
-
-        function updateDropdownLists() {
-            renderSingerDropdown('');
-            renderFolderDropdown('');
-        }
-
-        // Returns deduplicated list of unique singers
-        function getUniqueSingers() {
-            const seen = new Set();
-            const result = [];
-
-            knownFolders.forEach(name => {
-                const clean = normalizeKhmer(name);
-                if (clean && !seen.has(clean)) {
-                    seen.add(clean);
-                    result.push(clean);
-                }
-            });
-
-            songsCatalog.forEach(s => {
-                const clean = normalizeKhmer(s.singer);
-                if (clean && !seen.has(clean)) {
-                    seen.add(clean);
-                    result.push(clean);
-                }
-            });
-
-            return result.sort((a, b) => a.localeCompare(b, 'km'));
-        }
-
-        // Returns deduplicated list of unique folders
-        function getUniqueFolders() {
-            const seen = new Set();
-            const result = [];
-
-            knownFolders.forEach(name => {
-                const clean = normalizeKhmer(name);
-                if (clean && !seen.has(clean)) {
-                    seen.add(clean);
-                    result.push(clean);
-                }
-            });
-
-            songsCatalog.forEach(s => {
-                if (s.url && s.url.includes('/')) {
-                    const rawPart = s.url.split('/')[0];
-                    const decoded = decodeURIComponent(rawPart);
-                    const clean = normalizeKhmer(decoded);
-                    if (clean && !seen.has(clean)) {
-                        seen.add(clean);
-                        result.push(clean);
-                    }
-                }
-            });
-
-            return result.sort((a, b) => a.localeCompare(b, 'km'));
-        }
-
-        function showSingerDropdown() {
-            const currentText = document.getElementById('songSinger').value;
-            renderSingerDropdown(currentText);
-        }
-
-        function toggleSingerDropdown() {
-            const menu = document.getElementById('singerDropdownMenu');
-            if (menu.style.display === 'block') {
-                menu.style.display = 'none';
-            } else {
-                renderSingerDropdown(document.getElementById('songSinger').value);
-            }
-        }
-
-        function renderSingerDropdown(filter) {
-            const menu = document.getElementById('singerDropdownMenu');
-            const cleanFilter = normalizeKhmer(filter).toLowerCase();
-            const singers = getUniqueSingers();
-
-            const filtered = cleanFilter
-                ? singers.filter(s => normalizeKhmer(s).toLowerCase().includes(cleanFilter))
-                : singers;
-
-            if (filtered.length === 0) {
-                menu.innerHTML = `<div class="p-3 text-xs text-slate-400 text-center">គ្មានឈ្មោះត្រូវគ្នាទេ (វាយដើម្បីបង្កើតថ្មី)</div>`;
-            } else {
-                menu.innerHTML = filtered.map(s => `
-                    <div class="custom-dropdown-item" onclick="selectSinger('${s.replace(/'/g, "\\'")}')">
-                        <i class="fa-solid fa-microphone-lines text-brand-500 text-xs"></i> <span>${s}</span>
-                    </div>
-                `).join('');
-            }
-            menu.style.display = 'block';
-        }
-
-        function showFolderDropdown() {
-            const currentText = document.getElementById('songFolder').value;
-            renderFolderDropdown(currentText);
-        }
-
-        function toggleFolderDropdown() {
-            const menu = document.getElementById('folderDropdownMenu');
-            if (menu.style.display === 'block') {
-                menu.style.display = 'none';
-            } else {
-                renderFolderDropdown(document.getElementById('songFolder').value);
-            }
-        }
-
-        function renderFolderDropdown(filter) {
-            const menu = document.getElementById('folderDropdownMenu');
-            const cleanFilter = normalizeKhmer(filter).toLowerCase();
-            const folders = getUniqueFolders();
-
-            const filtered = cleanFilter
-                ? folders.filter(f => normalizeKhmer(f).toLowerCase().includes(cleanFilter))
-                : folders;
-
-            if (filtered.length === 0) {
-                menu.innerHTML = `<div class="p-3 text-xs text-slate-400 text-center">គ្មាន Folder ត្រូវគ្នាទេ (វាយដើម្បីបង្កើតថ្មី)</div>`;
-            } else {
-                menu.innerHTML = filtered.map(f => `
-                    <div class="custom-dropdown-item" onclick="selectFolder('${f.replace(/'/g, "\\'")}')">
-                        <i class="fa-solid fa-folder text-brand-500 text-xs"></i> <span>${f}</span>
-                    </div>
-                `).join('');
-            }
-            menu.style.display = 'block';
-        }
-
-        async function handleUploadSong(e) {
-            e.preventDefault();
-
-            const title = cleanString(document.getElementById('songTitle').value);
-            const singer = cleanString(document.getElementById('songSinger').value);
-            const category = document.getElementById('songCategory').value;
-            
-            // Auto-detect existing folder if it matches, otherwise create cleanly
-            const inputFolder = cleanString(document.getElementById('songFolder').value || singer);
-            const folder = findExistingFolderMatch(inputFolder);
-
-            let image = document.getElementById('songImage').value.trim();
-            const fileInput = document.getElementById('audioFile');
-            const file = fileInput.files[0];
-
-            if (!file) {
-                alert('Please select an MP3 file to upload.');
-                return;
-            }
-
-            const titleExists = songsCatalog.some(song =>
-                song.title.toLowerCase() === title.toLowerCase()
-            );
-
-            if (titleExists) {
-                alert(`⚠️ Upload Blocked: The song title "${title}" already exists in your catalog!`);
-                return;
-            }
-
-            const s3 = getS3Client();
-            if (!s3) return;
-
-            const bucketName = document.getElementById('r2BucketName').value.trim();
-            const baseUrl = document.getElementById('r2BaseUrl').value.trim();
-
-            const uploadBtn = document.getElementById('uploadBtn');
-            uploadBtn.disabled = true;
-            uploadBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Uploading to R2...`;
-
+        const remaining = songsCatalog.filter(s => !s.size || s.size <= 0);
+        for (let song of remaining) {
             try {
-                // Upload custom singer image if selected
-                if (uploadedImageFile) {
-                    // Do NOT percent-encode the S3 key; AWS SDK takes UTF-8 directly
-                    const imgKey = `singers/${folder}/profile.jpg`;
-                    await s3.putObject({
-                        Bucket: bucketName,
-                        Key: imgKey,
-                        Body: uploadedImageFile,
-                        ContentType: uploadedImageFile.type || 'image/jpeg'
-                    }).promise();
-                    image = `${baseUrl}/singers/${encodeURIComponent(folder)}/profile.jpg`;
+                const fullUrl = song.url.startsWith('http') 
+                    ? song.url 
+                    : `${baseUrl}/${song.url}`;
+
+                const res = await fetch(fullUrl, { method: 'HEAD' });
+                const lengthHeader = res.headers.get('content-length');
+                if (lengthHeader) {
+                    song.size = parseInt(lengthHeader, 10);
+                    updatedCount++;
                 }
+            } catch (e) {
+                console.warn(`Could not fetch size for ${song.title}:`, e);
+            }
+        }
 
-                const filename = file.name;
-                // Direct UTF-8 key path for clean folder display in Cloudflare dashboard
-                const r2Key = `${folder}/${filename}`;
+        applyAllFilters();
+        showStatus(`Retrieved sizes for ${updatedCount} songs! Click 'Publish to R2' to save.`, 'emerald');
+    }
 
+    async function syncCatalogFromR2() {
+        const baseUrl = document.getElementById('r2BaseUrl').value.trim();
+        await loadBucketLiveFolders();
+
+        try {
+            showStatus('Syncing songs.json from R2...', 'blue');
+            const response = await fetch(`${baseUrl}/songs.json?t=${Date.now()}`);
+            if (response.ok) {
+                const data = await response.json();
+                if (Array.isArray(data)) {
+                    songsCatalog = data;
+                    applyAllFilters();
+                    updateDropdownLists();
+                    populateSingerFilterDropdown();
+                    showStatus('Successfully synced songs.json from R2!', 'emerald');
+
+                    const hasMissingSizes = songsCatalog.some(s => !s.size || s.size <= 0);
+                    if (hasMissingSizes) {
+                        fetchMissingSizes();
+                    }
+                    return;
+                }
+            }
+            showStatus('No remote songs.json found yet. Starting empty.', 'slate');
+        } catch (err) {
+            console.log('Could not fetch remote songs.json:', err);
+            showStatus('Offline mode / empty catalog.', 'slate');
+        }
+    }
+
+    function populateSingerFilterDropdown() {
+        const select = document.getElementById('filterSingerSelect');
+        const currentVal = select.value;
+        const singers = getUniqueSingers();
+
+        select.innerHTML = '<option value="">All Singers</option>' +
+            singers.map(s => `<option value="${s.replace(/"/g, '&quot;')}">${s}</option>`).join('');
+
+        if (singers.includes(currentVal)) {
+            select.value = currentVal;
+        }
+    }
+
+    function applyAllFilters() {
+        const titleQuery = (document.getElementById('filterTitleInput')?.value || '').trim().toLowerCase();
+        const categoryQuery = (document.getElementById('filterCategorySelect')?.value || '').trim().toLowerCase();
+        const singerQuery = (document.getElementById('filterSingerSelect')?.value || '').trim().toLowerCase();
+        const sizeOption = document.getElementById('filterSizeSelect')?.value || '';
+
+        filteredCatalog = songsCatalog.filter(song => {
+            if (titleQuery && !song.title.toLowerCase().includes(titleQuery)) {
+                return false;
+            }
+
+            if (categoryQuery && (!song.category || !song.category.toLowerCase().includes(categoryQuery))) {
+                return false;
+            }
+
+            if (singerQuery) {
+                const sName = normalizeKhmer(song.singer || '').toLowerCase();
+                const sUrl = normalizeKhmer(decodeURIComponent(song.url || '')).toLowerCase();
+                if (!sName.includes(singerQuery) && !sUrl.includes(singerQuery)) {
+                    return false;
+                }
+            }
+
+            const bytes = Number(song.size) || 0;
+            if (sizeOption === 'small' && bytes >= 4 * 1024 * 1024) return false;
+            if (sizeOption === 'medium' && (bytes < 4 * 1024 * 1024 || bytes > 8 * 1024 * 1024)) return false;
+            if (sizeOption === 'large' && bytes <= 8 * 1024 * 1024) return false;
+
+            return true;
+        });
+
+        if (sizeOption === 'sort_desc') {
+            filteredCatalog.sort((a, b) => (Number(b.size) || 0) - (Number(a.size) || 0));
+        } else if (sizeOption === 'sort_asc') {
+            filteredCatalog.sort((a, b) => (Number(a.size) || 0) - (Number(b.size) || 0));
+        }
+
+        currentPage = 1;
+        renderTable();
+    }
+
+    function resetAllFilters() {
+        document.getElementById('filterTitleInput').value = '';
+        document.getElementById('filterCategorySelect').value = '';
+        document.getElementById('filterSingerSelect').value = '';
+        document.getElementById('filterSizeSelect').value = '';
+        applyAllFilters();
+    }
+
+    function changePage(direction) {
+        const maxPage = Math.ceil(filteredCatalog.length / pageSize) || 1;
+        currentPage = Math.max(1, Math.min(currentPage + direction, maxPage));
+        renderTable();
+    }
+
+    function updateDropdownLists() {
+        renderSingerDropdown('');
+        renderFolderDropdown('');
+    }
+
+    function showSingerDropdown() {
+        const currentText = document.getElementById('songSinger').value;
+        renderSingerDropdown(currentText);
+    }
+
+    function toggleSingerDropdown() {
+        const menu = document.getElementById('singerDropdownMenu');
+        if (menu.style.display === 'block') {
+            menu.style.display = 'none';
+        } else {
+            renderSingerDropdown(document.getElementById('songSinger').value);
+        }
+    }
+
+    function renderSingerDropdown(filter) {
+        const menu = document.getElementById('singerDropdownMenu');
+        const cleanFilter = normalizeKhmer(filter).toLowerCase();
+        const singers = getUniqueSingers();
+
+        const filtered = cleanFilter
+            ? singers.filter(s => s.toLowerCase().includes(cleanFilter))
+            : singers;
+
+        if (filtered.length === 0) {
+            menu.innerHTML = `<div class="p-3 text-xs text-slate-400 text-center">គ្មានឈ្មោះត្រូវគ្នាទេ (វាយដើម្បីបង្កើតថ្មី)</div>`;
+        } else {
+            menu.innerHTML = filtered.map(s => `
+                <div class="custom-dropdown-item" onclick="selectSinger('${s.replace(/'/g, "\\'")}')">
+                    <i class="fa-solid fa-microphone-lines text-brand-500 text-xs"></i> <span>${s}</span>
+                </div>
+            `).join('');
+        }
+        menu.style.display = 'block';
+    }
+
+    function showFolderDropdown() {
+        const currentText = document.getElementById('songFolder').value;
+        renderFolderDropdown(currentText);
+    }
+
+    function toggleFolderDropdown() {
+        const menu = document.getElementById('folderDropdownMenu');
+        if (menu.style.display === 'block') {
+            menu.style.display = 'none';
+        } else {
+            renderFolderDropdown(document.getElementById('songFolder').value);
+        }
+    }
+
+    function renderFolderDropdown(filter) {
+        const menu = document.getElementById('folderDropdownMenu');
+        const cleanFilter = normalizeKhmer(filter).toLowerCase();
+        const folders = getUniqueFolders();
+
+        const filtered = cleanFilter
+            ? folders.filter(f => f.toLowerCase().includes(cleanFilter))
+            : folders;
+
+        if (filtered.length === 0) {
+            menu.innerHTML = `<div class="p-3 text-xs text-slate-400 text-center">គ្មាន Folder ត្រូវគ្នាទេ (វាយដើម្បីបង្កើតថ្មី)</div>`;
+        } else {
+            menu.innerHTML = filtered.map(f => `
+                <div class="custom-dropdown-item" onclick="selectFolder('${f.replace(/'/g, "\\'")}')">
+                    <i class="fa-solid fa-folder text-brand-500 text-xs"></i> <span>${f}</span>
+                </div>
+            `).join('');
+        }
+        menu.style.display = 'block';
+    }
+
+    async function handleUploadSong(e) {
+        e.preventDefault();
+
+        const title = cleanString(document.getElementById('songTitle').value);
+        const singer = cleanString(document.getElementById('songSinger').value);
+        const category = document.getElementById('songCategory').value;
+        
+        const rawFolder = document.getElementById('songFolder').value || singer;
+        const folder = findExistingFolderMatch(rawFolder);
+        
+        let image = document.getElementById('songImage').value.trim();
+        const fileInput = document.getElementById('audioFile');
+        const file = fileInput.files[0];
+
+        if (!file) {
+            alert('Please select an MP3 file to upload.');
+            return;
+        }
+
+        const titleExists = songsCatalog.some(song => 
+            song.title.toLowerCase() === title.toLowerCase()
+        );
+
+        if (titleExists) {
+            alert(`⚠️ Upload Blocked: The song title "${title}" already exists in your catalog!`);
+            return;
+        }
+
+        const s3 = getS3Client();
+        if (!s3) {
+            alert('Please save your Cloudflare R2 Credentials first.');
+            return;
+        }
+
+        const bucketName = document.getElementById('r2BucketName').value.trim();
+        const baseUrl = document.getElementById('r2BaseUrl').value.trim();
+
+        const uploadBtn = document.getElementById('uploadBtn');
+        const progressContainer = document.getElementById('uploadProgressContainer');
+        const progressBar = document.getElementById('uploadProgressBar');
+        const progressPercent = document.getElementById('uploadProgressPercent');
+        const progressTitle = document.getElementById('uploadProgressTitle');
+        const bytesText = document.getElementById('uploadBytesText');
+        const speedEtaText = document.getElementById('uploadSpeedEtaText');
+
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Uploading...`;
+
+        // Display Progress Container
+        progressContainer.classList.remove('hidden');
+        progressBar.style.width = '0%';
+        progressPercent.textContent = '0%';
+        progressTitle.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Uploading MP3 to R2...`;
+        bytesText.textContent = `0 MB / ${formatBytes(file.size)}`;
+        speedEtaText.textContent = `Calculating speed & ETA...`;
+
+        try {
+            // 1. Upload singer profile image if selected
+            if (uploadedImageFile) {
+                progressTitle.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Uploading Singer Artwork...`;
+                const imgKey = `singers/${folder}/profile.jpg`;
                 await s3.putObject({
                     Bucket: bucketName,
-                    Key: r2Key,
-                    Body: file,
-                    ContentType: file.type || 'audio/mpeg'
+                    Key: imgKey,
+                    Body: uploadedImageFile,
+                    ContentType: uploadedImageFile.type || 'image/jpeg'
                 }).promise();
-
-                const newSong = {
-                    title,
-                    singer,
-                    category,
-                    image: image && !image.startsWith('[Selected') ? image : `${baseUrl}/singers/${encodeURIComponent(folder)}/profile.jpg`,
-                    url: r2Key,
-                    size: file.size
-                };
-
-                songsCatalog.unshift(newSong);
-                populateSingerFilterDropdown();
-                applyAllFilters();
-
-                fileInput.value = '';
-                document.getElementById('fileLabelText').textContent = 'Click to browse or drop MP3 file here';
-                document.getElementById('fileLabelText').className = "text-xs text-slate-700 font-semibold mb-0.5";
-                document.getElementById('songTitle').value = '';
-                document.getElementById('songSinger').value = '';
-                document.getElementById('songImage').value = '';
-                uploadedImageFile = null;
-
-                showStatus(`MP3 uploaded to '${folder}/'! Click "Publish to R2" to save live catalog.`, 'emerald');
-            } catch (err) {
-                alert('R2 Upload Failed: ' + err.message);
-                showStatus('Upload failed!', 'rose');
-            } finally {
-                uploadBtn.disabled = false;
-                uploadBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Upload MP3 & Add to Catalog`;
+                image = `${baseUrl}/singers/${encodeURIComponent(folder)}/profile.jpg`;
             }
+
+            // 2. Upload MP3 file using s3.upload with real-time percentage and time calculations
+            progressTitle.innerHTML = `<i class="fa-solid fa-cloud-arrow-up text-brand-600"></i> Uploading Audio File...`;
+            const filename = file.name;
+            const r2Path = `${folder}/${filename}`;
+
+            const startTime = Date.now();
+            const totalBytes = file.size;
+
+            const uploadManager = s3.upload({
+                Bucket: bucketName,
+                Key: r2Path,
+                Body: file,
+                ContentType: file.type || 'audio/mpeg'
+            });
+
+            uploadManager.on('httpUploadProgress', (progress) => {
+                const loaded = progress.loaded;
+                const total = progress.total || totalBytes;
+                const percent = Math.min(100, Math.round((loaded / total) * 100));
+
+                progressBar.style.width = `${percent}%`;
+                progressPercent.textContent = `${percent}%`;
+                bytesText.textContent = `${formatBytes(loaded)} / ${formatBytes(total)}`;
+
+                // Speed and ETA calculation
+                const elapsedSeconds = (Date.now() - startTime) / 1000;
+                if (elapsedSeconds > 0.3) {
+                    const bytesPerSecond = loaded / elapsedSeconds;
+                    const remainingBytes = Math.max(0, total - loaded);
+                    const remainingSeconds = Math.round(remainingBytes / bytesPerSecond);
+
+                    const speedStr = `${formatBytes(bytesPerSecond)}/s`;
+                    const etaStr = remainingSeconds > 60
+                        ? `${Math.floor(remainingSeconds / 60)}m ${remainingSeconds % 60}s`
+                        : `${remainingSeconds}s`;
+
+                    speedEtaText.textContent = `${speedStr} • ETA: ${percent >= 100 ? 'Finishing...' : etaStr}`;
+                }
+            });
+
+            await uploadManager.promise();
+
+            // 3. Update local catalog state
+            const newSong = {
+                title,
+                singer,
+                category,
+                image: image && !image.startsWith('[Selected') ? image : `${baseUrl}/singers/${encodeURIComponent(folder)}/profile.jpg`,
+                url: r2Path,
+                size: file.size
+            };
+
+            songsCatalog.unshift(newSong);
+            if (!r2BucketFolders.includes(folder)) {
+                r2BucketFolders.push(folder);
+            }
+
+            populateSingerFilterDropdown();
+            applyAllFilters();
+
+            // Clean up form inputs
+            fileInput.value = '';
+            document.getElementById('fileLabelText').textContent = 'Click to browse or drop MP3 file here';
+            document.getElementById('fileLabelText').className = "text-xs text-slate-700 font-semibold mb-0.5";
+            document.getElementById('songTitle').value = '';
+            document.getElementById('songSinger').value = '';
+            document.getElementById('songImage').value = '';
+            uploadedImageFile = null;
+
+            // Show completion indicator
+            progressBar.style.width = '100%';
+            progressPercent.textContent = '100%';
+            progressTitle.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i> Upload Complete!`;
+            speedEtaText.textContent = `Finished successfully`;
+
+            showStatus('MP3 uploaded successfully! Click "Publish to R2" to save live catalog.', 'emerald');
+
+            setTimeout(() => {
+                progressContainer.classList.add('hidden');
+            }, 3500);
+
+        } catch (err) {
+            alert('R2 Upload Failed: ' + err.message);
+            showStatus('Upload failed!', 'rose');
+            progressContainer.classList.add('hidden');
+        } finally {
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Upload MP3 & Add to Catalog`;
+        }
+    }
+
+    async function publishCatalogToR2() {
+        const s3 = getS3Client();
+        if (!s3) return;
+
+        const bucketName = document.getElementById('r2BucketName').value.trim();
+        const publishBtn = document.getElementById('publishBtn');
+        publishBtn.disabled = true;
+        publishBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Publishing...`;
+
+        const jsonString = JSON.stringify(songsCatalog, null, 2);
+
+        s3.upload({
+            Bucket: bucketName,
+            Key: 'songs.json',
+            Body: jsonString,
+            ContentType: 'application/json'
+        }, function (err, data) {
+            publishBtn.disabled = false;
+            publishBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Publish to R2`;
+
+            if (err) {
+                alert('Failed to publish songs.json: ' + err.message);
+                showStatus('Publish failed!', 'rose');
+                return;
+            }
+
+            showStatus('songs.json published to R2 successfully!', 'emerald');
+            alert('Success! songs.json published to Cloudflare R2.');
+        });
+    }
+
+    async function deleteSong(indexInFiltered) {
+        const song = filteredCatalog[indexInFiltered];
+        if (!song) return;
+
+        if (!confirm(`Are you sure you want to delete "${song.title}" from R2?`)) {
+            return;
         }
 
-        async function publishCatalogToR2() {
-            const s3 = getS3Client();
-            if (!s3) return;
+        const s3 = getS3Client();
+        if (!s3) return;
 
-            const bucketName = document.getElementById('r2BucketName').value.trim();
-            const publishBtn = document.getElementById('publishBtn');
-            publishBtn.disabled = true;
-            publishBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Publishing...`;
+        const bucketName = document.getElementById('r2BucketName').value.trim();
+        const r2Path = song.url.startsWith('http')
+            ? decodeURIComponent(song.url.split('.dev/').pop())
+            : decodeURIComponent(song.url);
+
+        showStatus('Deleting MP3 from R2...', 'blue');
+
+        s3.deleteObject({
+            Bucket: bucketName,
+            Key: r2Path
+        }, async function (err, data) {
+            if (err) {
+                alert('Failed to delete file from R2: ' + err.message);
+                showStatus('R2 delete failed', 'rose');
+                return;
+            }
+
+            const rawIdx = songsCatalog.indexOf(song);
+            if (rawIdx !== -1) songsCatalog.splice(rawIdx, 1);
+            
+            populateSingerFilterDropdown();
+            applyAllFilters();
 
             const jsonString = JSON.stringify(songsCatalog, null, 2);
-
-            s3.upload({
+            s3.putObject({
                 Bucket: bucketName,
                 Key: 'songs.json',
                 Body: jsonString,
                 ContentType: 'application/json'
-            }, function (err, data) {
-                publishBtn.disabled = false;
-                publishBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Publish to R2`;
-
-                if (err) {
-                    alert('Failed to publish songs.json: ' + err.message);
-                    showStatus('Publish failed!', 'rose');
+            }, function (pubErr, pubData) {
+                if (pubErr) {
+                    showStatus('Catalog sync failed', 'rose');
                     return;
                 }
-
-                showStatus('songs.json published to R2 successfully!', 'emerald');
-                alert('Success! songs.json published to Cloudflare R2.');
+                showStatus('Song deleted and catalog updated successfully!', 'emerald');
             });
+        });
+    }
+
+    function clearAllSongs() {
+        if (confirm('Are you sure you want to clear all songs from the catalog?')) {
+            songsCatalog = [];
+            filteredCatalog = [];
+            currentPage = 1;
+            updateDropdownLists();
+            populateSingerFilterDropdown();
+            renderTable();
         }
+    }
 
-        async function deleteSong(indexInFiltered) {
-            const song = filteredCatalog[indexInFiltered];
-            if (!song) return;
+    function renderTable() {
+        const tbody = document.getElementById('songsTableBody');
+        const badge = document.getElementById('songCountBadge');
+        const jsonPreview = document.getElementById('jsonPreview');
+        const pageInfoText = document.getElementById('pageInfoText');
+        const pageBadge = document.getElementById('pageBadge');
+        const prevBtn = document.getElementById('prevPageBtn');
+        const nextBtn = document.getElementById('nextPageBtn');
 
-            if (!confirm(`Are you sure you want to delete "${song.title}" from R2?`)) {
-                return;
-            }
+        badge.textContent = songsCatalog.length;
+        jsonPreview.textContent = JSON.stringify(songsCatalog, null, 2);
 
-            const s3 = getS3Client();
-            if (!s3) return;
+        const total = filteredCatalog.length;
+        const maxPage = Math.ceil(total / pageSize) || 1;
+        currentPage = Math.max(1, Math.min(currentPage, maxPage));
 
-            const bucketName = document.getElementById('r2BucketName').value.trim();
-            const r2Path = song.url.startsWith('http')
-                ? decodeURIComponent(song.url.split('.dev/').pop())
-                : decodeURIComponent(song.url);
+        const startIdx = (currentPage - 1) * pageSize;
+        const endIdx = Math.min(startIdx + pageSize, total);
+        const pageItems = filteredCatalog.slice(startIdx, endIdx);
 
-            showStatus('Deleting MP3 from R2...', 'blue');
+        pageInfoText.textContent = total === 0
+            ? 'Showing 0 of 0'
+            : `Showing ${startIdx + 1}–${endIdx} of ${total}`;
+        pageBadge.textContent = `${currentPage} / ${maxPage}`;
 
-            s3.deleteObject({
-                Bucket: bucketName,
-                Key: r2Path
-            }, async function (err, data) {
-                if (err) {
-                    alert('Failed to delete file from R2: ' + err.message);
-                    showStatus('R2 delete failed', 'rose');
-                    return;
-                }
+        prevBtn.disabled = currentPage <= 1;
+        nextBtn.disabled = currentPage >= maxPage;
 
-                const rawIdx = songsCatalog.indexOf(song);
-                if (rawIdx !== -1) songsCatalog.splice(rawIdx, 1);
-                
-                populateSingerFilterDropdown();
-                applyAllFilters();
-
-                const jsonString = JSON.stringify(songsCatalog, null, 2);
-                s3.putObject({
-                    Bucket: bucketName,
-                    Key: 'songs.json',
-                    Body: jsonString,
-                    ContentType: 'application/json'
-                }, function (pubErr, pubData) {
-                    if (pubErr) {
-                        showStatus('Catalog sync failed', 'rose');
-                        return;
-                    }
-                    showStatus('Song deleted and catalog updated successfully!', 'emerald');
-                });
-            });
-        }
-
-        function clearAllSongs() {
-            if (confirm('Are you sure you want to clear all songs from the catalog?')) {
-                songsCatalog = [];
-                filteredCatalog = [];
-                currentPage = 1;
-                updateDropdownLists();
-                populateSingerFilterDropdown();
-                renderTable();
-            }
-        }
-
-        function renderTable() {
-            const tbody = document.getElementById('songsTableBody');
-            const badge = document.getElementById('songCountBadge');
-            const jsonPreview = document.getElementById('jsonPreview');
-            const pageInfoText = document.getElementById('pageInfoText');
-            const pageBadge = document.getElementById('pageBadge');
-            const prevBtn = document.getElementById('prevPageBtn');
-            const nextBtn = document.getElementById('nextPageBtn');
-
-            badge.textContent = songsCatalog.length;
-            jsonPreview.textContent = JSON.stringify(songsCatalog, null, 2);
-
-            const total = filteredCatalog.length;
-            const maxPage = Math.ceil(total / pageSize) || 1;
-            currentPage = Math.max(1, Math.min(currentPage, maxPage));
-
-            const startIdx = (currentPage - 1) * pageSize;
-            const endIdx = Math.min(startIdx + pageSize, total);
-            const pageItems = filteredCatalog.slice(startIdx, endIdx);
-
-            pageInfoText.textContent = total === 0
-                ? 'Showing 0 of 0'
-                : `Showing ${startIdx + 1}–${endIdx} of ${total}`;
-            pageBadge.textContent = `${currentPage} / ${maxPage}`;
-
-            prevBtn.disabled = currentPage <= 1;
-            nextBtn.disabled = currentPage >= maxPage;
-
-            if (pageItems.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="5" class="px-4 py-10 text-center text-slate-400 text-xs">
-                            ${songsCatalog.length === 0 ? 'No songs in catalog yet. Upload an MP3 and publish to R2.' : 'No songs match the current filter criteria.'}
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
-            tbody.innerHTML = pageItems.map((song, i) => {
-                const actualIndex = startIdx + i;
-                const displaySize = song.size ? formatBytes(song.size) : '--';
-                const decodedPath = decodeURIComponent(song.url);
-                return `
-                <tr class="hover:bg-slate-100/80 transition">
-                    <td class="px-4 py-3 flex items-center gap-3">
-                        <img loading="lazy" src="${song.image}" onerror="this.src='https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500'" class="w-9 h-9 rounded-lg object-cover bg-slate-200" />
-                        <div>
-                            <div class="font-semibold text-slate-900 text-xs">${song.title}</div>
-                            <div class="text-[11px] text-slate-500">${song.singer}</div>
-                        </div>
-                    </td>
-                    <td class="px-4 py-3">
-                        <span class="px-2 py-0.5 text-[10px] font-medium bg-brand-50 text-brand-700 rounded-md border border-brand-200">${song.category}</span>
-                    </td>
-                    <td class="px-4 py-3 text-xs font-mono text-slate-500">
-                        ${displaySize}
-                    </td>
-                    <td class="px-4 py-3 font-mono text-[11px] text-slate-600 max-w-[180px] truncate" title="${decodedPath}">
-                        ${decodedPath}
-                    </td>
-                    <td class="px-4 py-3 text-right">
-                        <button onclick="deleteSong(${actualIndex})" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition" title="Delete Song">
-                            <i class="fa-solid fa-trash-can text-xs"></i>
-                        </button>
+        if (pageItems.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="px-4 py-10 text-center text-slate-400 text-xs">
+                        ${songsCatalog.length === 0 ? 'No songs in catalog yet. Upload an MP3 and publish to R2.' : 'No songs match the current filter criteria.'}
                     </td>
                 </tr>
-            `}).join('');
+            `;
+            return;
         }
 
-        function showStatus(msg, color) {
-            const el = document.getElementById('statusMessage');
-            el.textContent = msg;
-            el.className = `text-xs font-medium text-${color}-600`;
-        }
-    </script>
-</body>
+        tbody.innerHTML = pageItems.map((song, i) => {
+            const actualIndex = startIdx + i;
+            const displaySize = song.size ? formatBytes(song.size) : '--';
+            const decodedPath = decodeURIComponent(song.url);
+            return `
+            <tr class="hover:bg-slate-100/80 transition">
+                <td class="px-4 py-3 flex items-center gap-3">
+                    <img loading="lazy" src="${song.image}" onerror="this.src='https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500'" class="w-9 h-9 rounded-lg object-cover bg-slate-200" />
+                    <div>
+                        <div class="font-semibold text-slate-900 text-xs">${song.title}</div>
+                        <div class="text-[11px] text-slate-500">${song.singer}</div>
+                    </div>
+                </td>
+                <td class="px-4 py-3">
+                    <span class="px-2 py-0.5 text-[10px] font-medium bg-brand-50 text-brand-700 rounded-md border border-brand-200">${song.category}</span>
+                </td>
+                <td class="px-4 py-3 text-xs font-mono text-slate-500">
+                    ${displaySize}
+                </td>
+                <td class="px-4 py-3 font-mono text-[11px] text-slate-600 max-w-[180px] truncate" title="${decodedPath}">
+                    ${decodedPath}
+                </td>
+                <td class="px-4 py-3 text-right">
+                    <button onclick="deleteSong(${actualIndex})" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition" title="Delete Song">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                </td>
+            </tr>
+        `}).join('');
+    }
 
-</html>
+    function showStatus(msg, color) {
+        const el = document.getElementById('statusMessage');
+        el.textContent = msg;
+        el.className = `text-xs font-medium text-${color}-600`;
+    }
+</script>
