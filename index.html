@@ -233,7 +233,7 @@
                         </div>
                     </div>
 
-                    <!-- Upload Progress Bar with % and Estimated Time -->
+                    <!-- Upload Progress Bar -->
                     <div id="uploadProgressContainer" class="hidden bg-slate-50 border border-brand-200 rounded-xl p-3 space-y-2">
                         <div class="flex justify-between items-center text-xs">
                             <span id="uploadProgressTitle" class="font-semibold text-brand-700 flex items-center gap-1.5">
@@ -372,6 +372,66 @@
         </div>
     </main>
 
+    <!-- Modal for Editing Song (Title, Singer, Category) -->
+    <div id="editSongModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all">
+            <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+                <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-brand-600"></i> Edit Song Metadata
+                </h3>
+                <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <form id="editSongForm" onsubmit="saveEditedSong(event)" class="p-6 space-y-4">
+                <input type="hidden" id="editSongIndex">
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Song Title (ចំណងជើងបទចម្រៀង)</label>
+                    <input type="text" id="editSongTitle" required
+                        class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Artist / Singer (តារាចម្រៀង)</label>
+                    <input type="text" id="editSongSinger" required
+                        class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Category (ប្រភេទ)</label>
+                    <select id="editSongCategory" required
+                        class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500 font-medium">
+                        <option value="ចម្រៀងសម័យទំនើប">ចម្រៀងសម័យទំនើប (Modern)</option>
+                        <option value="ចម្រៀងសម័យដើម">ចម្រៀងសម័យដើម (Classic)</option>
+                        <option value="ចម្រៀង Rap">ចម្រៀង Rap (Rap)</option>
+                        <option value="ចម្រៀង Sad">ចម្រៀង Sad (Sad)</option>
+                        <option value="ចម្រៀងស្រុកស្រែ">ចម្រៀងស្រុកស្រែ (Countryside)</option>
+                        <option value="ចម្រៀង រ៉ូមេនទិច">ចម្រៀង រ៉ូមេនទិច (Romance)</option>
+                        <option value="ចម្រៀងប្រពៃណី">ចម្រៀងប្រពៃណី (Traditional)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">R2 Audio Path (Fixed)</label>
+                    <input type="text" id="editSongPath" disabled
+                        class="w-full bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-500 cursor-not-allowed">
+                    <p class="text-[10px] text-slate-400 mt-1">Audio file path on Cloudflare R2 cannot be renamed directly.</p>
+                </div>
+
+                <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-5 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-xl shadow-md shadow-brand-600/20 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-check"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         let songsCatalog = [];
         let filteredCatalog = [];
@@ -403,7 +463,7 @@
                 .trim();
 
             if (s.includes('សាមុត') || s.toLowerCase().includes('sisamuth') || s.toLowerCase().includes('sisamouth')) {
-                return 'ស៊ិន ស៊ីសាមុត';
+                return 'ស៊ីន ស៊ីសាមុត';
             }
             return s;
         }
@@ -440,7 +500,7 @@
                 }
             });
 
-            const defaultBase = ['ស៊ិន ស៊ីសាមុត', 'សុខ ពិសី', 'ម៉ៅ ហាជី', 'ព្រាប សុវត្ថិ', 'ប៉ែន រ៉ន', 'នាង ដាវីន', 'ថុល សុភិទិ'];
+            const defaultBase = ['ស៊ីន ស៊ីសាមុត', 'សុខ ពិសី', 'ម៉ៅ ហាជី', 'ព្រាប សុវត្ថិ', 'ប៉ែន រ៉ន', 'នាង ដាវីន', 'ថុល សុភិទិ'];
             defaultBase.forEach(def => {
                 const clean = normalizeKhmer(def);
                 if (clean && !seen.has(clean)) {
@@ -1007,7 +1067,6 @@
             uploadBtn.disabled = true;
             uploadBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Uploading...`;
 
-            // Display Progress Container
             progressContainer.classList.remove('hidden');
             progressBar.style.width = '0%';
             progressPercent.textContent = '0%';
@@ -1016,7 +1075,6 @@
             speedEtaText.textContent = `Calculating speed & ETA...`;
 
             try {
-                // 1. Upload singer profile image if selected
                 if (uploadedImageFile) {
                     progressTitle.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Uploading Singer Artwork...`;
                     const imgKey = `singers/${folder}/profile.jpg`;
@@ -1029,7 +1087,6 @@
                     image = `${baseUrl}/singers/${encodeURIComponent(folder)}/profile.jpg`;
                 }
 
-                // 2. Upload MP3 file using s3.upload with real-time percentage and time calculations
                 progressTitle.innerHTML = `<i class="fa-solid fa-cloud-arrow-up text-brand-600"></i> Uploading Audio File...`;
                 const filename = file.name;
                 const r2Path = `${folder}/${filename}`;
@@ -1053,7 +1110,6 @@
                     progressPercent.textContent = `${percent}%`;
                     bytesText.textContent = `${formatBytes(loaded)} / ${formatBytes(total)}`;
 
-                    // Speed and ETA calculation
                     const elapsedSeconds = (Date.now() - startTime) / 1000;
                     if (elapsedSeconds > 0.3) {
                         const bytesPerSecond = loaded / elapsedSeconds;
@@ -1071,7 +1127,6 @@
 
                 await uploadManager.promise();
 
-                // 3. Update local catalog state
                 const newSong = {
                     title,
                     singer,
@@ -1089,7 +1144,6 @@
                 populateSingerFilterDropdown();
                 applyAllFilters();
 
-                // Clean up form inputs
                 fileInput.value = '';
                 document.getElementById('fileLabelText').textContent = 'Click to browse or drop MP3 file here';
                 document.getElementById('fileLabelText').className = "text-xs text-slate-700 font-semibold mb-0.5";
@@ -1098,13 +1152,12 @@
                 document.getElementById('songImage').value = '';
                 uploadedImageFile = null;
 
-                // Show completion indicator
                 progressBar.style.width = '100%';
                 progressPercent.textContent = '100%';
                 progressTitle.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i> Upload Complete!`;
                 speedEtaText.textContent = `Finished successfully`;
 
-                showStatus('MP3 uploaded successfully! Click "Publish to R2" to save live catalog.', 'emerald');
+                showStatus('MP3 uploaded successfully into existing folder! Click "Publish to R2" to save live catalog.', 'emerald');
 
                 setTimeout(() => {
                     progressContainer.classList.add('hidden');
@@ -1118,6 +1171,63 @@
                 uploadBtn.disabled = false;
                 uploadBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Upload MP3 & Add to Catalog`;
             }
+        }
+
+        /* --- Song Edit Modal Functions --- */
+        function openEditModal(indexInFiltered) {
+            const song = filteredCatalog[indexInFiltered];
+            if (!song) return;
+
+            document.getElementById('editSongIndex').value = indexInFiltered;
+            document.getElementById('editSongTitle').value = song.title || '';
+            document.getElementById('editSongSinger').value = song.singer || '';
+            document.getElementById('editSongCategory').value = song.category || 'ចម្រៀងសម័យទំនើប';
+            document.getElementById('editSongPath').value = decodeURIComponent(song.url || '');
+
+            document.getElementById('editSongModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editSongModal').classList.add('hidden');
+        }
+
+        function saveEditedSong(e) {
+            e.preventDefault();
+            const indexInFiltered = parseInt(document.getElementById('editSongIndex').value, 10);
+            const song = filteredCatalog[indexInFiltered];
+            if (!song) return;
+
+            const newTitle = cleanString(document.getElementById('editSongTitle').value);
+            const newSinger = cleanString(document.getElementById('editSongSinger').value);
+            const newCategory = document.getElementById('editSongCategory').value;
+
+            // Check if title changed and conflicts with another existing song
+            const rawIdx = songsCatalog.indexOf(song);
+            const titleDuplicate = songsCatalog.some((s, idx) => 
+                idx !== rawIdx && s.title.toLowerCase() === newTitle.toLowerCase()
+            );
+
+            if (titleDuplicate) {
+                alert(`⚠️ Another song with the title "${newTitle}" already exists!`);
+                return;
+            }
+
+            // Update song properties
+            song.title = newTitle;
+            song.singer = newSinger;
+            song.category = newCategory;
+
+            if (rawIdx !== -1) {
+                songsCatalog[rawIdx].title = newTitle;
+                songsCatalog[rawIdx].singer = newSinger;
+                songsCatalog[rawIdx].category = newCategory;
+            }
+
+            populateSingerFilterDropdown();
+            applyAllFilters();
+            closeEditModal();
+
+            showStatus(`Updated "${newTitle}". Click "Publish to R2" to sync changes!`, 'emerald');
         }
 
         async function publishCatalogToR2() {
@@ -1258,25 +1368,30 @@
                 return `
                 <tr class="hover:bg-slate-100/80 transition">
                     <td class="px-4 py-3 flex items-center gap-3">
-                        <img loading="lazy" src="${song.image}" onerror="this.src='https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500'" class="w-9 h-9 rounded-lg object-cover bg-slate-200" />
+                        <img loading="lazy" src="${song.image}" onerror="this.src='https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500'" class="w-9 h-9 rounded-lg object-cover bg-slate-200 shrink-0" />
                         <div>
                             <div class="font-semibold text-slate-900 text-xs">${song.title}</div>
                             <div class="text-[11px] text-slate-500">${song.singer}</div>
                         </div>
                     </td>
                     <td class="px-4 py-3">
-                        <span class="px-2 py-0.5 text-[10px] font-medium bg-brand-50 text-brand-700 rounded-md border border-brand-200">${song.category}</span>
+                        <span class="px-2 py-0.5 text-[10px] font-medium bg-brand-50 text-brand-700 rounded-md border border-brand-200 whitespace-nowrap">${song.category}</span>
                     </td>
-                    <td class="px-4 py-3 text-xs font-mono text-slate-500">
+                    <td class="px-4 py-3 text-xs font-mono text-slate-500 whitespace-nowrap">
                         ${displaySize}
                     </td>
                     <td class="px-4 py-3 font-mono text-[11px] text-slate-600 max-w-[180px] truncate" title="${decodedPath}">
                         ${decodedPath}
                     </td>
-                    <td class="px-4 py-3 text-right">
-                        <button onclick="deleteSong(${actualIndex})" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition" title="Delete Song">
-                            <i class="fa-solid fa-trash-can text-xs"></i>
-                        </button>
+                    <td class="px-4 py-3 text-right whitespace-nowrap">
+                        <div class="flex items-center justify-end gap-1.5">
+                            <button onclick="openEditModal(${actualIndex})" class="p-1.5 bg-brand-50 hover:bg-brand-100 text-brand-600 rounded-lg transition" title="Edit Metadata">
+                                <i class="fa-solid fa-pen-to-square text-xs"></i>
+                            </button>
+                            <button onclick="deleteSong(${actualIndex})" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition" title="Delete Song">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `}).join('');
