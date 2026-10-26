@@ -403,7 +403,7 @@
                 .trim();
 
             if (s.includes('សាមុត') || s.toLowerCase().includes('sisamuth') || s.toLowerCase().includes('sisamouth')) {
-                return 'ស៊ីន ស៊ីសាមុត';
+                return 'ស៊ិន ស៊ីសាមុត';
             }
             return s;
         }
@@ -440,7 +440,7 @@
                 }
             });
 
-            const defaultBase = ['ស៊ីន ស៊ីសាមុត', 'សុខ ពិសី', 'ម៉ៅ ហាជី', 'ព្រាប សុវត្ថិ', 'ប៉ែន រ៉ន', 'នាង ដាវីន', 'ថុល សុភិទិ'];
+            const defaultBase = ['ស៊ិន ស៊ីសាមុត', 'សុខ ពិសី', 'ម៉ៅ ហាជី', 'ព្រាប សុវត្ថិ', 'ប៉ែន រ៉ន', 'នាង ដាវីន', 'ថុល សុភិទិ'];
             defaultBase.forEach(def => {
                 const clean = normalizeKhmer(def);
                 if (clean && !seen.has(clean)) {
