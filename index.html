@@ -223,7 +223,6 @@
                                 </label>
                                 <input type="file" id="imageFile" accept="image/*" class="hidden" onchange="handleImageFileSelected(this)">
                             </div>
-                            <!-- Live Thumbnail Preview Badge -->
                             <div id="imagePreviewContainer" class="flex items-center gap-2.5 p-2 bg-slate-50 border border-slate-200 rounded-xl">
                                 <img id="imagePreviewThumb" src="" alt="Cover Preview" class="w-10 h-10 rounded-lg object-cover bg-slate-200 border border-slate-300 shrink-0" onerror="handleImageError(this)">
                                 <div class="overflow-hidden">
@@ -246,7 +245,6 @@
 
             <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex-1 flex flex-col">
                 
-                <!-- Header with Title & Action Buttons -->
                 <div class="flex items-center justify-between gap-3 mb-3">
                     <div class="flex items-center gap-2">
                         <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2">
@@ -265,16 +263,14 @@
                     </div>
                 </div>
 
-                <!-- Multi-Filter Bar (Title, Category, Singer, Size) -->
+                <!-- Multi-Filter Bar -->
                 <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 mb-4 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
-                    <!-- Title Filter -->
                     <div class="relative">
                         <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                         <input type="text" id="filterTitleInput" placeholder="Filter title..." oninput="applyAllFilters()"
                             class="w-full bg-white border border-slate-300 rounded-lg pl-8 pr-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-brand-500">
                     </div>
 
-                    <!-- Category Filter -->
                     <div>
                         <select id="filterCategorySelect" onchange="applyAllFilters()"
                             class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-brand-500">
@@ -289,7 +285,6 @@
                         </select>
                     </div>
 
-                    <!-- Singer Filter -->
                     <div>
                         <select id="filterSingerSelect" onchange="applyAllFilters()"
                             class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-brand-500">
@@ -297,7 +292,6 @@
                         </select>
                     </div>
 
-                    <!-- Size Filter -->
                     <div>
                         <select id="filterSizeSelect" onchange="applyAllFilters()"
                             class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-brand-500">
@@ -362,19 +356,8 @@
     <script>
         let songsCatalog = [];
         let filteredCatalog = [];
+        let r2BucketFolders = []; // Holds live folders fetched directly from R2
         let uploadedImageFile = null;
-
-        // Base verified directory names existing on your Cloudflare R2 bucket
-        const knownFolders = [
-            'ថុល សុភិទិ',
-            'នាង ដាវីន',
-            'ប៉ែន រ៉ន',
-            'ព្រាប សុវត្ថិ Vs ពេជ្រ សោភា',
-            'ព្រាប សុវត្ថិ',
-            'ម៉ៅ ហាជី',
-            'សុខ ពិសី',
-            'ស៊ីន ស៊ីសាមុត'
-        ];
 
         let currentPage = 1;
         const pageSize = 10;
@@ -393,44 +376,121 @@
             });
         });
 
-        // Strips invisible zero-width spaces, collapses whitespaces, and unifies spelling variants
+        // Deep Khmer normalization: collapses vowel variants (e.g. ស៊ vs សី, zero-width chars)
         function normalizeKhmer(str) {
             if (!str) return '';
             let s = str
                 .replace(/[\u200B-\u200D\uFEFF]/g, '') // remove zero-width spaces
-                .replace(/\s+/g, ' ')                  // collapse extra spaces
+                .replace(/\s+/g, ' ')                  // collapse whitespace
                 .trim();
 
-            // Unify spelling variations for Sin Sisamuth to always target the existing single folder
-            if (s.includes('សាមុត')) {
+            // Unify spelling variations for Sin Sisamuth
+            if (s.includes('សាមុត') || s.toLowerCase().includes('sisamuth') || s.toLowerCase().includes('sisamouth')) {
                 return 'ស៊ីន ស៊ីសាមុត';
             }
-
             return s;
         }
 
-        // Checks whether a folder name matches an existing folder in the bucket or catalog
+        // Simplifies Khmer strings to consonants to detect phonetic matches
+        function getKhmerRootKey(str) {
+            if (!str) return '';
+            return normalizeKhmer(str)
+                .replace(/[\u17B6-\u17D3\u17DD]/g, '') // strip diacritics and vowels
+                .toLowerCase()
+                .trim();
+        }
+
+        // Returns all known unique folders (combining live R2 bucket folders + songsCatalog)
+        function getUniqueFolders() {
+            const seen = new Set();
+            const result = [];
+
+            // 1. Prioritize live folders discovered in R2
+            r2BucketFolders.forEach(name => {
+                const clean = normalizeKhmer(name);
+                if (clean && !seen.has(clean)) {
+                    seen.add(clean);
+                    result.push(clean);
+                }
+            });
+
+            // 2. Add existing catalog folders
+            songsCatalog.forEach(s => {
+                if (s.url && s.url.includes('/')) {
+                    const rawPart = s.url.split('/')[0];
+                    const decoded = decodeURIComponent(rawPart);
+                    const clean = normalizeKhmer(decoded);
+                    if (clean && !seen.has(clean)) {
+                        seen.add(clean);
+                        result.push(clean);
+                    }
+                }
+            });
+
+            // Default fallback if bucket is totally fresh
+            const defaultBase = ['ស៊ីន ស៊ីសាមុត', 'សុខ ពិសី', 'ម៉ៅ ហាជី', 'ព្រាប សុវត្ថិ', 'ប៉ែន រ៉ន', 'នាង ដាវីន', 'ថុល សុភិទិ'];
+            defaultBase.forEach(def => {
+                const clean = normalizeKhmer(def);
+                if (clean && !seen.has(clean)) {
+                    seen.add(clean);
+                    result.push(clean);
+                }
+            });
+
+            return result.sort((a, b) => a.localeCompare(b, 'km'));
+        }
+
+        // Matches an input artist/folder name to an ALREADY EXISTING folder in R2
         function findExistingFolderMatch(rawName) {
-            const cleanTarget = normalizeKhmer(rawName).toLowerCase();
-            const allAvailableFolders = getUniqueFolders();
+            const clean = normalizeKhmer(rawName);
+            if (!clean) return '';
 
-            // 1. Direct exact or normalized match
-            for (let f of allAvailableFolders) {
-                if (normalizeKhmer(f).toLowerCase() === cleanTarget) {
-                    return f;
-                }
+            const folders = getUniqueFolders();
+
+            // 1. Exact match
+            const exact = folders.find(f => f === clean);
+            if (exact) return exact;
+
+            // 2. Normalized match (handles Sisamuth variations)
+            const normalizedMatch = folders.find(f => normalizeKhmer(f) === clean);
+            if (normalizedMatch) return normalizedMatch;
+
+            // 3. Substring match (e.g. "ស៊ីន ស៊ីសាមុត Old Song" -> "ស៊ីន ស៊ីសាមុត")
+            const subMatch = folders.find(f => clean.includes(f) || f.includes(clean));
+            if (subMatch) return subMatch;
+
+            // 4. Phonetic / consonant root match
+            const rootKey = getKhmerRootKey(clean);
+            if (rootKey) {
+                const rootMatch = folders.find(f => getKhmerRootKey(f) === rootKey);
+                if (rootMatch) return rootMatch;
             }
 
-            // 2. Partial inclusion match (e.g. "ស៊ិន ស៊ីសាមុត" matches "ស៊ីន ស៊ីសាមុត")
-            for (let f of allAvailableFolders) {
-                const normF = normalizeKhmer(f).toLowerCase();
-                if (cleanTarget.includes(normF) || normF.includes(cleanTarget)) {
-                    return f;
-                }
-            }
+            // 5. Does not exist yet -> use clean name to create new folder
+            return clean;
+        }
 
-            // No existing match found: return the cleaned name as a brand new folder
-            return cleanString(rawName);
+        function getUniqueSingers() {
+            const seen = new Set();
+            const result = [];
+
+            getUniqueFolders().forEach(f => {
+                const clean = normalizeKhmer(f);
+                if (clean && !seen.has(clean)) {
+                    seen.add(clean);
+                    result.push(clean);
+                }
+            });
+
+            songsCatalog.forEach(s => {
+                const clean = normalizeKhmer(s.singer);
+                if (clean && !seen.has(clean)) {
+                    seen.add(clean);
+                    result.push(clean);
+                }
+            });
+
+            return result.sort((a, b) => a.localeCompare(b, 'km'));
         }
 
         function formatBytes(bytes) {
@@ -456,7 +516,7 @@
                 thumb.src = url;
                 status.textContent = "✓ Image Attached";
                 status.className = "text-[11px] font-semibold text-emerald-600 truncate";
-                urlText.textContent = decodeURIComponent(url);
+                urlText.textContent = url;
             } else {
                 thumb.src = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500";
                 status.textContent = "No image loaded";
@@ -469,21 +529,20 @@
             const folderVal = (targetFolder || document.getElementById('songFolder').value || document.getElementById('songSinger').value).trim();
             if (!folderVal) return;
 
-            const matchedFolder = findExistingFolderMatch(folderVal);
+            const existingFolder = findExistingFolderMatch(folderVal);
             const baseUrl = document.getElementById('r2BaseUrl').value.trim().replace(/\/+$/, '');
             const imageInput = document.getElementById('songImage');
 
-            const cleanTarget = normalizeKhmer(matchedFolder).toLowerCase();
-            const existing = songsCatalog.find(s => 
+            const cleanTarget = normalizeKhmer(existingFolder).toLowerCase();
+            const existingSong = songsCatalog.find(s => 
                 (s.singer && normalizeKhmer(s.singer).toLowerCase() === cleanTarget) ||
                 (s.url && normalizeKhmer(decodeURIComponent(s.url)).toLowerCase().startsWith(cleanTarget + '/'))
             );
 
-            if (existing && existing.image && !existing.image.includes('unsplash.com')) {
-                imageInput.value = existing.image;
+            if (existingSong && existingSong.image && !existingSong.image.includes('unsplash.com')) {
+                imageInput.value = existingSong.image;
             } else if (baseUrl) {
-                // Public browser image URLs encode Khmer characters
-                imageInput.value = `${baseUrl}/singers/${encodeURIComponent(matchedFolder)}/profile.jpg`;
+                imageInput.value = `${baseUrl}/singers/${encodeURIComponent(existingFolder)}/profile.jpg`;
             }
 
             imageInput.scrollLeft = imageInput.scrollWidth;
@@ -495,6 +554,7 @@
             if (!input) return;
 
             const folderInput = document.getElementById('songFolder');
+            // Route to existing folder if it exists
             const matchedFolder = findExistingFolderMatch(input);
 
             folderInput.value = matchedFolder;
@@ -513,9 +573,10 @@
         }
 
         function selectSinger(name) {
-            document.getElementById('songSinger').value = name;
+            const target = findExistingFolderMatch(name);
+            document.getElementById('songSinger').value = target;
             document.getElementById('singerDropdownMenu').style.display = 'none';
-            applySingerProfile(name);
+            applySingerProfile(target);
         }
 
         function selectFolder(name) {
@@ -559,8 +620,9 @@
 
                 document.getElementById('songTitle').value = title;
                 if (singer) {
-                    document.getElementById('songSinger').value = singer;
-                    applySingerProfile(singer);
+                    const matched = findExistingFolderMatch(singer);
+                    document.getElementById('songSinger').value = matched;
+                    applySingerProfile(matched);
                 }
             } else {
                 label.textContent = "Click to browse or drop MP3 file here";
@@ -588,6 +650,7 @@
             localStorage.setItem('r2_secret_key', document.getElementById('r2SecretKey').value);
             localStorage.setItem('r2_bucket_name', document.getElementById('r2BucketName').value);
             showStatus('Credentials saved locally!', 'emerald');
+            loadBucketLiveFolders();
         }
 
         function loadCredentials() {
@@ -604,7 +667,6 @@
             const secretAccessKey = document.getElementById('r2SecretKey').value.trim();
 
             if (!accountId || !accessKeyId || !secretAccessKey) {
-                alert('Please enter your Cloudflare R2 Account ID, Access Key ID, and Secret Access Key.');
                 return null;
             }
 
@@ -619,6 +681,30 @@
                 signatureVersion: 'v4',
                 s3ForcePathStyle: true
             });
+        }
+
+        // Queries the R2 bucket directly to detect all real existing folders
+        async function loadBucketLiveFolders() {
+            const s3 = getS3Client();
+            if (!s3) return;
+
+            const bucketName = document.getElementById('r2BucketName').value.trim();
+            try {
+                const res = await s3.listObjectsV2({
+                    Bucket: bucketName,
+                    Delimiter: '/'
+                }).promise();
+
+                if (res && res.CommonPrefixes) {
+                    r2BucketFolders = res.CommonPrefixes
+                        .map(p => p.Prefix.replace(/\/$/, ''))
+                        .filter(p => p && p !== 'singers' && !p.startsWith('%'));
+                }
+                updateDropdownLists();
+                populateSingerFilterDropdown();
+            } catch (e) {
+                console.warn('Could not query live R2 bucket folders:', e);
+            }
         }
 
         async function fetchMissingSizes() {
@@ -670,16 +756,16 @@
                         }
                     }
                 } catch (err) {
-                    console.warn('Batch lookup failed, trying direct head fallback:', err);
+                    console.warn('Batch lookup fallback:', err);
                 }
             }
 
-            // Fallback for remaining songs via public URL
             const remaining = songsCatalog.filter(s => !s.size || s.size <= 0);
             for (let song of remaining) {
                 try {
-                    const cleanPath = decodeURIComponent(song.url.startsWith('http') ? song.url.split('.dev/').pop() : song.url);
-                    const fullUrl = `${baseUrl}/${encodeURIComponent(cleanPath.split('/')[0])}/${encodeURIComponent(cleanPath.split('/').slice(1).join('/'))}`;
+                    const fullUrl = song.url.startsWith('http') 
+                        ? song.url 
+                        : `${baseUrl}/${song.url}`;
 
                     const res = await fetch(fullUrl, { method: 'HEAD' });
                     const lengthHeader = res.headers.get('content-length');
@@ -698,6 +784,8 @@
 
         async function syncCatalogFromR2() {
             const baseUrl = document.getElementById('r2BaseUrl').value.trim();
+            await loadBucketLiveFolders();
+
             try {
                 showStatus('Syncing songs.json from R2...', 'blue');
                 const response = await fetch(`${baseUrl}/songs.json?t=${Date.now()}`);
@@ -797,58 +885,6 @@
             renderFolderDropdown('');
         }
 
-        // Returns deduplicated list of unique singers
-        function getUniqueSingers() {
-            const seen = new Set();
-            const result = [];
-
-            knownFolders.forEach(name => {
-                const clean = normalizeKhmer(name);
-                if (clean && !seen.has(clean)) {
-                    seen.add(clean);
-                    result.push(clean);
-                }
-            });
-
-            songsCatalog.forEach(s => {
-                const clean = normalizeKhmer(s.singer);
-                if (clean && !seen.has(clean)) {
-                    seen.add(clean);
-                    result.push(clean);
-                }
-            });
-
-            return result.sort((a, b) => a.localeCompare(b, 'km'));
-        }
-
-        // Returns deduplicated list of unique folders
-        function getUniqueFolders() {
-            const seen = new Set();
-            const result = [];
-
-            knownFolders.forEach(name => {
-                const clean = normalizeKhmer(name);
-                if (clean && !seen.has(clean)) {
-                    seen.add(clean);
-                    result.push(clean);
-                }
-            });
-
-            songsCatalog.forEach(s => {
-                if (s.url && s.url.includes('/')) {
-                    const rawPart = s.url.split('/')[0];
-                    const decoded = decodeURIComponent(rawPart);
-                    const clean = normalizeKhmer(decoded);
-                    if (clean && !seen.has(clean)) {
-                        seen.add(clean);
-                        result.push(clean);
-                    }
-                }
-            });
-
-            return result.sort((a, b) => a.localeCompare(b, 'km'));
-        }
-
         function showSingerDropdown() {
             const currentText = document.getElementById('songSinger').value;
             renderSingerDropdown(currentText);
@@ -869,7 +905,7 @@
             const singers = getUniqueSingers();
 
             const filtered = cleanFilter
-                ? singers.filter(s => normalizeKhmer(s).toLowerCase().includes(cleanFilter))
+                ? singers.filter(s => s.toLowerCase().includes(cleanFilter))
                 : singers;
 
             if (filtered.length === 0) {
@@ -904,7 +940,7 @@
             const folders = getUniqueFolders();
 
             const filtered = cleanFilter
-                ? folders.filter(f => normalizeKhmer(f).toLowerCase().includes(cleanFilter))
+                ? folders.filter(f => f.toLowerCase().includes(cleanFilter))
                 : folders;
 
             if (filtered.length === 0) {
@@ -926,10 +962,10 @@
             const singer = cleanString(document.getElementById('songSinger').value);
             const category = document.getElementById('songCategory').value;
             
-            // Auto-detect existing folder if it matches, otherwise create cleanly
-            const inputFolder = cleanString(document.getElementById('songFolder').value || singer);
-            const folder = findExistingFolderMatch(inputFolder);
-
+            // STRICTLY routes into the existing folder in R2 if one matches
+            const rawFolder = document.getElementById('songFolder').value || singer;
+            const folder = findExistingFolderMatch(rawFolder);
+            
             let image = document.getElementById('songImage').value.trim();
             const fileInput = document.getElementById('audioFile');
             const file = fileInput.files[0];
@@ -939,7 +975,7 @@
                 return;
             }
 
-            const titleExists = songsCatalog.some(song =>
+            const titleExists = songsCatalog.some(song => 
                 song.title.toLowerCase() === title.toLowerCase()
             );
 
@@ -949,7 +985,10 @@
             }
 
             const s3 = getS3Client();
-            if (!s3) return;
+            if (!s3) {
+                alert('Please save your Cloudflare R2 Credentials first.');
+                return;
+            }
 
             const bucketName = document.getElementById('r2BucketName').value.trim();
             const baseUrl = document.getElementById('r2BaseUrl').value.trim();
@@ -959,9 +998,7 @@
             uploadBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Uploading to R2...`;
 
             try {
-                // Upload custom singer image if selected
                 if (uploadedImageFile) {
-                    // Do NOT percent-encode the S3 key; AWS SDK takes UTF-8 directly
                     const imgKey = `singers/${folder}/profile.jpg`;
                     await s3.putObject({
                         Bucket: bucketName,
@@ -973,12 +1010,12 @@
                 }
 
                 const filename = file.name;
-                // Direct UTF-8 key path for clean folder display in Cloudflare dashboard
-                const r2Key = `${folder}/${filename}`;
+                // Direct UTF-8 Key: places file inside the exact matching folder
+                const r2Path = `${folder}/${filename}`;
 
                 await s3.putObject({
                     Bucket: bucketName,
-                    Key: r2Key,
+                    Key: r2Path,
                     Body: file,
                     ContentType: file.type || 'audio/mpeg'
                 }).promise();
@@ -988,11 +1025,15 @@
                     singer,
                     category,
                     image: image && !image.startsWith('[Selected') ? image : `${baseUrl}/singers/${encodeURIComponent(folder)}/profile.jpg`,
-                    url: r2Key,
+                    url: r2Path,
                     size: file.size
                 };
 
                 songsCatalog.unshift(newSong);
+                if (!r2BucketFolders.includes(folder)) {
+                    r2BucketFolders.push(folder);
+                }
+
                 populateSingerFilterDropdown();
                 applyAllFilters();
 
@@ -1004,7 +1045,7 @@
                 document.getElementById('songImage').value = '';
                 uploadedImageFile = null;
 
-                showStatus(`MP3 uploaded to '${folder}/'! Click "Publish to R2" to save live catalog.`, 'emerald');
+                showStatus('MP3 uploaded successfully into existing folder! Click "Publish to R2" to save live catalog.', 'emerald');
             } catch (err) {
                 alert('R2 Upload Failed: ' + err.message);
                 showStatus('Upload failed!', 'rose');
@@ -1148,7 +1189,6 @@
             tbody.innerHTML = pageItems.map((song, i) => {
                 const actualIndex = startIdx + i;
                 const displaySize = song.size ? formatBytes(song.size) : '--';
-                const decodedPath = decodeURIComponent(song.url);
                 return `
                 <tr class="hover:bg-slate-100/80 transition">
                     <td class="px-4 py-3 flex items-center gap-3">
@@ -1164,8 +1204,8 @@
                     <td class="px-4 py-3 text-xs font-mono text-slate-500">
                         ${displaySize}
                     </td>
-                    <td class="px-4 py-3 font-mono text-[11px] text-slate-600 max-w-[180px] truncate" title="${decodedPath}">
-                        ${decodedPath}
+                    <td class="px-4 py-3 font-mono text-[11px] text-slate-600 max-w-[180px] truncate" title="${decodeURIComponent(song.url)}">
+                        ${decodeURIComponent(song.url)}
                     </td>
                     <td class="px-4 py-3 text-right">
                         <button onclick="deleteSong(${actualIndex})" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition" title="Delete Song">
