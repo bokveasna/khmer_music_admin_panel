@@ -1159,17 +1159,53 @@
             const startTime = Date.now();
 
             try {
+                const singerProfileKey = `singers/${folder}/profile.jpg`;
+                const permanentImageUrl = `${baseUrl}/singers/${encodeURIComponent(folder)}/profile.jpg`;
+
                 if (uploadedImageFile) {
-                    const imgKey = `singers/${folder}/profile.jpg`;
+                    // 1. User uploaded an image file -> Save directly as profile.jpg
                     await s3.putObject({
                         Bucket: bucketName,
-                        Key: imgKey,
+                        Key: singerProfileKey,
                         Body: uploadedImageFile,
                         ContentType: uploadedImageFile.type || 'image/jpeg'
                     }).promise();
-                    image = `${baseUrl}/singers/${encodeURIComponent(folder)}/profile.jpg`;
-                }
+                    image = permanentImageUrl;
+                } else {
+                    // 2. No image uploaded yet -> Check if singers/<folder>/profile.jpg already exists
+                    let profileExists = false;
+                    try {
+                        await s3.headObject({
+                            Bucket: bucketName,
+                            Key: singerProfileKey
+                        }).promise();
+                        profileExists = true;
+                    } catch (headErr) {
+                        profileExists = false;
+                    }
 
+                    // If it does NOT exist yet, create the folder and placeholder profile.jpg automatically
+                    if (!profileExists) {
+                        // Create a tiny 1x1 transparent WebP/JPEG placeholder byte stream
+                        const placeholderBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+                        const byteCharacters = atob(placeholderBase64);
+                        const byteNumbers = new Array(byteCharacters.length);
+                        for (let i = 0; i < byteCharacters.length; i++) {
+                            byteNumbers[i] = byteCharacters.charCodeAt(i);
+                        }
+                        const placeholderBlob = new Blob([new Uint8Array(byteNumbers)], { type: 'image/png' });
+
+                        await s3.putObject({
+                            Bucket: bucketName,
+                            Key: singerProfileKey,
+                            Body: placeholderBlob,
+                            ContentType: 'image/png'
+                        }).promise();
+                    }
+
+                    image = permanentImageUrl;
+                }
+                
                 const filename = file.name;
                 const r2Path = `${folder}/${filename}`;
 
