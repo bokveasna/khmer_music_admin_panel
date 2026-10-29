@@ -34,11 +34,27 @@
         }
     </script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
 
         .custom-dropdown-menu {
             display: none;
@@ -78,26 +94,34 @@
 
 <body class="bg-slate-100 text-slate-800 h-full flex flex-col antialiased selection:bg-brand-500 selection:text-white">
 
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 px-6 py-4 flex items-center justify-between shadow-sm">
+    <header
+        class="bg-white border-b border-slate-200 sticky top-0 z-50 px-6 py-4 flex items-center justify-between shadow-sm">
         <div class="flex items-center space-x-3">
-            <div class="bg-brand-600 text-white p-2.5 rounded-xl shadow-lg shadow-brand-600/20 flex items-center justify-center">
+            <div
+                class="bg-brand-600 text-white p-2.5 rounded-xl shadow-lg shadow-brand-600/20 flex items-center justify-center">
                 <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
             </div>
             <div>
                 <h1 class="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-                    ចម្រៀងខ្មែរ R2 Direct Admin <span class="text-xs px-2 py-0.5 rounded-full bg-brand-100 text-brand-700 border border-brand-200 font-medium">Cloudflare Manager</span>
+                    ចម្រៀងខ្មែរ R2 Direct Admin <span
+                        class="text-xs px-2 py-0.5 rounded-full bg-brand-100 text-brand-700 border border-brand-200 font-medium">Cloudflare
+                        Manager</span>
                 </h1>
-                <p class="text-xs text-slate-500">Upload MP3s into artist folders & publish <code class="text-brand-600 font-mono font-semibold">songs.json</code> to Cloudflare R2</p>
+                <p class="text-xs text-slate-500">Upload MP3s into artist folders & publish <code
+                        class="text-brand-600 font-mono font-semibold">songs.json</code> to Cloudflare R2</p>
             </div>
         </div>
         <div class="flex items-center space-x-2.5">
-            <button onclick="fetchMissingSizes()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl border border-slate-300 transition flex items-center gap-1.5 shadow-sm">
+            <button onclick="fetchMissingSizes()"
+                class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl border border-slate-300 transition flex items-center gap-1.5 shadow-sm">
                 <i class="fa-solid fa-weight-scale text-brand-600"></i> Fetch Sizes
             </button>
-            <button onclick="syncCatalogFromR2()" class="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-xl border border-slate-300 transition flex items-center gap-2 shadow-sm">
+            <button onclick="syncCatalogFromR2()"
+                class="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-xl border border-slate-300 transition flex items-center gap-2 shadow-sm">
                 <i class="fa-solid fa-rotate text-brand-600"></i> Sync songs.json from R2
             </button>
-            <button onclick="publishCatalogToR2()" id="publishBtn" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-brand-600/20 transition flex items-center gap-2">
+            <button onclick="publishCatalogToR2()" id="publishBtn"
+                class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-brand-600/20 transition flex items-center gap-2">
                 <i class="fa-solid fa-cloud-arrow-up"></i> Publish to R2
             </button>
         </div>
@@ -118,35 +142,50 @@
                         <label class="block text-xs font-medium text-slate-600 mb-1">R2 Public Base URL</label>
                         <input type="text" id="r2BaseUrl" value="https://pub-4b6e0edb03794226bc7b6bf9b9dc1b4c.r2.dev"
                             class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500"
-                            oninput="updateSingerImageUrl()">
+                            oninput="this.value = this.value.trim(); updateSingerImageUrl()">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">Account ID (Cloudflare Dashboard URL)</label>
-                        <input type="text" id="r2AccountId" placeholder="e.g., a1b2c3d4e5f6..."
-                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500">
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Account ID (Cloudflare Dashboard
+                            URL)</label>
+                        <input type="text" id="r2AccountId" placeholder="e.g., 32-character hex ID..."
+                            autocomplete="off"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500"
+                            oninput="this.value = this.value.trim()">
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
                             <label class="block text-xs font-medium text-slate-600 mb-1">Access Key ID</label>
-                            <input type="password" id="r2AccessKey" placeholder="Access Key"
-                                class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500">
+                            <input type="text" id="r2AccessKey" placeholder="Paste Access Key ID" autocomplete="off"
+                                class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500"
+                                oninput="this.value = this.value.trim()">
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-slate-600 mb-1">Secret Access Key</label>
-                            <input type="password" id="r2SecretKey" placeholder="Secret Key"
-                                class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500">
+                            <div class="relative">
+                                <input type="password" id="r2SecretKey" placeholder="Paste Secret Key"
+                                    autocomplete="new-password"
+                                    class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 pr-9 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500"
+                                    oninput="this.value = this.value.trim()">
+                                <button type="button" onclick="toggleSecretKeyVisibility()"
+                                    class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none">
+                                    <i id="secretKeyEyeIcon" class="fa-solid fa-eye text-xs"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-slate-600 mb-1">Bucket Name</label>
                         <input type="text" id="r2BucketName" value="app-music-bucket"
-                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500">
+                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500"
+                            oninput="this.value = this.value.trim()">
                     </div>
-                    <button onclick="saveCredentials()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
-                        Save Credentials Locally
+                    <button onclick="saveCredentials()"
+                        class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-floppy-disk text-brand-600"></i> Save Credentials Locally
                     </button>
                 </div>
             </div>
+
 
             <!-- Upload Card -->
             <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
@@ -156,19 +195,24 @@
                 <form id="songForm" onsubmit="handleUploadSong(event)" class="space-y-4">
 
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1.5">Select MP3 Audio File (.mp3)</label>
-                        <label for="audioFile" class="flex flex-col items-center justify-center w-full h-28 border-2 border-brand-300 border-dashed rounded-xl cursor-pointer bg-brand-50/50 hover:bg-brand-50 transition">
+                        <label class="block text-xs font-medium text-slate-600 mb-1.5">Select MP3 Audio File
+                            (.mp3)</label>
+                        <label for="audioFile"
+                            class="flex flex-col items-center justify-center w-full h-28 border-2 border-brand-300 border-dashed rounded-xl cursor-pointer bg-brand-50/50 hover:bg-brand-50 transition">
                             <div class="flex flex-col items-center justify-center pt-4 pb-4 px-4 text-center">
                                 <i class="fa-solid fa-file-audio text-brand-600 text-2xl mb-1.5"></i>
-                                <p id="fileLabelText" class="text-xs text-slate-700 font-semibold mb-0.5">Click to browse or drop MP3 file here</p>
+                                <p id="fileLabelText" class="text-xs text-slate-700 font-semibold mb-0.5">Click to
+                                    browse or drop MP3 file here</p>
                                 <p class="text-[10px] text-slate-400">Auto-detects Title & Artist cleanly</p>
                             </div>
-                            <input type="file" id="audioFile" accept=".mp3,audio/mpeg" required class="hidden" onchange="handleFileSelected(this)">
+                            <input type="file" id="audioFile" accept=".mp3,audio/mpeg" required class="hidden"
+                                onchange="handleFileSelected(this)">
                         </label>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1.5">Song Title (ចំណងជើងបទចម្រៀង)</label>
+                        <label class="block text-xs font-medium text-slate-600 mb-1.5">Song Title
+                            (ចំណងជើងបទចម្រៀង)</label>
                         <input type="text" id="songTitle" required placeholder="Clean song title..."
                             class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500"
                             oninput="this.value = this.value.replace(/^\s+/, '')"
@@ -176,14 +220,16 @@
                     </div>
 
                     <div class="relative">
-                        <label class="block text-xs font-medium text-slate-600 mb-1.5">Artist / Singer (តារាចម្រៀង - Search or Select)</label>
+                        <label class="block text-xs font-medium text-slate-600 mb-1.5">Artist / Singer (តារាចម្រៀង -
+                            Search or Select)</label>
                         <div class="relative">
                             <input type="text" id="songSinger" required placeholder="Type or select artist..."
                                 class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 pr-10 text-sm text-slate-800 focus:outline-none focus:border-brand-500"
                                 oninput="this.value = this.value.replace(/^\s+/, ''); onSingerInputChanged(this)"
                                 onblur="this.value = this.value.replace(/^\s+/, '').trim()"
                                 onfocus="showSingerDropdown()" autocomplete="off">
-                            <div onclick="toggleSingerDropdown()" class="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-slate-400 hover:text-brand-600 px-1">
+                            <div onclick="toggleSingerDropdown()"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-slate-400 hover:text-brand-600 px-1">
                                 <i class="fa-solid fa-chevron-down text-xs"></i>
                             </div>
                         </div>
@@ -193,7 +239,8 @@
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-medium text-slate-600 mb-1.5">Category (ប្រភេទ)</label>
-                            <select id="songCategory" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500 font-medium">
+                            <select id="songCategory"
+                                class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500 font-medium">
                                 <option value="ចម្រៀងសម័យទំនើប">ចម្រៀងសម័យទំនើប (Modern)</option>
                                 <option value="ចម្រៀងសម័យដើម">ចម្រៀងសម័យដើម (Classic)</option>
                                 <option value="ចម្រៀង Rap">ចម្រៀង Rap (Rap)</option>
@@ -211,7 +258,8 @@
                                     oninput="this.value = this.value.replace(/^\s+/, ''); onFolderInputChanged(this)"
                                     onblur="this.value = this.value.replace(/^\s+/, '').trim()"
                                     onfocus="showFolderDropdown()" autocomplete="off">
-                                <div onclick="toggleFolderDropdown()" class="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-slate-400 hover:text-brand-600 px-1">
+                                <div onclick="toggleFolderDropdown()"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-slate-400 hover:text-brand-600 px-1">
                                     <i class="fa-solid fa-chevron-down text-xs"></i>
                                 </div>
                             </div>
@@ -223,26 +271,36 @@
                         <label class="block text-xs font-medium text-slate-600 mb-1.5">Album Art / Singer Image</label>
                         <div class="space-y-2">
                             <div class="flex items-center gap-2">
-                                <input type="text" id="songImage" oninput="this.value = this.value.replace(/^\s+/, ''); refreshImagePreview(this.value)" placeholder="Auto-fills from singers/{folder}/profile.jpg"
+                                <input type="text" id="songImage"
+                                    oninput="this.value = this.value.replace(/^\s+/, ''); refreshImagePreview(this.value)"
+                                    placeholder="Auto-fills from singers/{folder}/profile.jpg"
                                     class="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-brand-500">
-                                <label for="imageFile" class="cursor-pointer px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-medium rounded-xl transition flex items-center gap-1.5 whitespace-nowrap">
+                                <label for="imageFile"
+                                    class="cursor-pointer px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-medium rounded-xl transition flex items-center gap-1.5 whitespace-nowrap">
                                     <i class="fa-solid fa-upload"></i> Upload Image
                                 </label>
-                                <input type="file" id="imageFile" accept="image/*" class="hidden" onchange="handleImageFileSelected(this)">
+                                <input type="file" id="imageFile" accept="image/*" class="hidden"
+                                    onchange="handleImageFileSelected(this)">
                             </div>
                             <!-- Live Thumbnail Preview Badge -->
-                            <div id="imagePreviewContainer" class="flex items-center gap-2.5 p-2 bg-slate-50 border border-slate-200 rounded-xl">
-                                <img id="imagePreviewThumb" src="" alt="Cover Preview" class="w-10 h-10 rounded-lg object-cover bg-slate-200 border border-slate-300 shrink-0" onerror="handleImageError(this)">
+                            <div id="imagePreviewContainer"
+                                class="flex items-center gap-2.5 p-2 bg-slate-50 border border-slate-200 rounded-xl">
+                                <img id="imagePreviewThumb" src="" alt="Cover Preview"
+                                    class="w-10 h-10 rounded-lg object-cover bg-slate-200 border border-slate-300 shrink-0"
+                                    onerror="handleImageError(this)">
                                 <div class="overflow-hidden">
-                                    <p class="text-[11px] font-semibold text-slate-700 truncate" id="imagePreviewStatus">No image loaded</p>
-                                    <p class="text-[9px] text-slate-400 truncate" id="imagePreviewUrlText">Select an artist or enter folder name</p>
+                                    <p class="text-[11px] font-semibold text-slate-700 truncate"
+                                        id="imagePreviewStatus">No image loaded</p>
+                                    <p class="text-[9px] text-slate-400 truncate" id="imagePreviewUrlText">Select an
+                                        artist or enter folder name</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Live Upload Progress Bar Container (Hidden by default) -->
-                    <div id="uploadProgressContainer" class="hidden space-y-2 bg-brand-50/70 p-3.5 rounded-xl border border-brand-200">
+                    <div id="uploadProgressContainer"
+                        class="hidden space-y-2 bg-brand-50/70 p-3.5 rounded-xl border border-brand-200">
                         <div class="flex items-center justify-between text-xs font-semibold text-brand-900">
                             <span id="uploadProgressLabel" class="flex items-center gap-1.5">
                                 <i class="fa-solid fa-spinner fa-spin text-brand-600"></i> Uploading MP3 to R2...
@@ -250,7 +308,9 @@
                             <span id="uploadProgressPercent" class="font-mono text-brand-700 font-bold">0%</span>
                         </div>
                         <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
-                            <div id="uploadProgressBar" class="bg-gradient-to-r from-brand-500 to-indigo-600 h-2.5 rounded-full transition-all duration-150 ease-out" style="width: 0%"></div>
+                            <div id="uploadProgressBar"
+                                class="bg-gradient-to-r from-brand-500 to-indigo-600 h-2.5 rounded-full transition-all duration-150 ease-out"
+                                style="width: 0%"></div>
                         </div>
                         <div class="flex items-center justify-between text-[11px] text-slate-500 font-mono">
                             <span id="uploadBytesText">0 MB / 0 MB</span>
@@ -258,7 +318,8 @@
                         </div>
                     </div>
 
-                    <button type="submit" id="uploadBtn" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-brand-600/20 transition flex items-center justify-center gap-2">
+                    <button type="submit" id="uploadBtn"
+                        class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-brand-600/20 transition flex items-center justify-center gap-2">
                         <i class="fa-solid fa-cloud-arrow-up"></i> Upload MP3 & Add to Catalog
                     </button>
                 </form>
@@ -269,31 +330,37 @@
         <div class="lg:col-span-7 flex flex-col space-y-6">
 
             <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex-1 flex flex-col">
-                
+
                 <!-- Header with Title & Action Buttons -->
                 <div class="flex items-center justify-between gap-3 mb-3">
                     <div class="flex items-center gap-2">
                         <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2">
                             <i class="fa-solid fa-list-music text-brand-600"></i> R2 Songs Catalog
-                            <span id="songCountBadge" class="ml-1 text-xs px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-700 border border-brand-200 font-mono">0</span>
+                            <span id="songCountBadge"
+                                class="ml-1 text-xs px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-700 border border-brand-200 font-mono">0</span>
                         </h2>
                     </div>
 
                     <div class="flex items-center gap-2">
-                        <button onclick="resetAllFilters()" class="text-xs text-slate-600 hover:text-slate-800 transition flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 border border-slate-200">
+                        <button onclick="resetAllFilters()"
+                            class="text-xs text-slate-600 hover:text-slate-800 transition flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 border border-slate-200">
                             <i class="fa-solid fa-arrow-rotate-left"></i> Reset
                         </button>
-                        <button onclick="clearAllSongs()" class="text-xs text-rose-600 hover:text-rose-700 transition flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-rose-50 border border-rose-200">
+                        <button onclick="clearAllSongs()"
+                            class="text-xs text-rose-600 hover:text-rose-700 transition flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-rose-50 border border-rose-200">
                             <i class="fa-solid fa-trash-can"></i> Clear All
                         </button>
                     </div>
                 </div>
 
                 <!-- Multi-Filter Bar -->
-                <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 mb-4 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                <div
+                    class="grid grid-cols-1 sm:grid-cols-4 gap-2 mb-4 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
                     <div class="relative">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <input type="text" id="filterTitleInput" placeholder="Filter title..." oninput="this.value = this.value.replace(/^\s+/, ''); applyAllFilters()"
+                        <i
+                            class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="filterTitleInput" placeholder="Filter title..."
+                            oninput="this.value = this.value.replace(/^\s+/, ''); applyAllFilters()"
                             class="w-full bg-white border border-slate-300 rounded-lg pl-8 pr-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-brand-500">
                     </div>
 
@@ -334,7 +401,8 @@
                 <!-- Table Container -->
                 <div class="flex-1 overflow-x-auto rounded-xl border border-slate-200 bg-slate-50 min-h-[380px]">
                     <table class="w-full text-left text-sm text-slate-700">
-                        <thead class="bg-slate-100 text-xs uppercase text-slate-500 sticky top-0 border-b border-slate-200">
+                        <thead
+                            class="bg-slate-100 text-xs uppercase text-slate-500 sticky top-0 border-b border-slate-200">
                             <tr>
                                 <th scope="col" class="px-4 py-3">Title & Artist</th>
                                 <th scope="col" class="px-4 py-3">Category</th>
@@ -350,14 +418,17 @@
                 </div>
 
                 <!-- Pagination Footer -->
-                <div class="flex items-center justify-between pt-3 border-t border-slate-100 mt-2 text-xs text-slate-500">
+                <div
+                    class="flex items-center justify-between pt-3 border-t border-slate-100 mt-2 text-xs text-slate-500">
                     <span id="pageInfoText">Showing 0 to 0 of 0</span>
                     <div class="flex items-center gap-1">
-                        <button onclick="changePage(-1)" id="prevPageBtn" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">
+                        <button onclick="changePage(-1)" id="prevPageBtn"
+                            class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">
                             <i class="fa-solid fa-chevron-left"></i> Prev
                         </button>
                         <span id="pageBadge" class="px-2 font-mono font-medium text-slate-700">1</span>
-                        <button onclick="changePage(1)" id="nextPageBtn" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">
+                        <button onclick="changePage(1)" id="nextPageBtn"
+                            class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">
                             Next <i class="fa-solid fa-chevron-right"></i>
                         </button>
                     </div>
@@ -367,12 +438,14 @@
             <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col">
                 <div class="flex items-center justify-between mb-3">
                     <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2">
-                        <i class="fa-solid fa-code text-brand-600"></i> Live <code class="text-brand-600 font-mono text-sm">songs.json</code> Preview
+                        <i class="fa-solid fa-code text-brand-600"></i> Live <code
+                            class="text-brand-600 font-mono text-sm">songs.json</code> Preview
                     </h2>
                     <div id="statusMessage" class="text-xs font-medium text-emerald-600"></div>
                 </div>
                 <div class="relative">
-                    <pre id="jsonPreview" class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-xs font-mono text-brand-300 h-36 overflow-y-auto selection:bg-brand-500 selection:text-white">[]</pre>
+                    <pre id="jsonPreview"
+                        class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-xs font-mono text-brand-300 h-36 overflow-y-auto selection:bg-brand-500 selection:text-white">[]</pre>
                 </div>
             </div>
 
@@ -380,8 +453,10 @@
     </main>
 
     <!-- Modal Dialog: Edit Song Details -->
-    <div id="editSongModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 transform transition-all">
+    <div id="editSongModal"
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+        <div
+            class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 transform transition-all">
             <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
                 <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
                     <i class="fa-solid fa-pen-to-square text-brand-600"></i> Edit Song Details
@@ -412,7 +487,8 @@
 
                 <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1">Category (ប្រភេទ)</label>
-                    <select id="editCategorySelect" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500 font-medium">
+                    <select id="editCategorySelect"
+                        class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500 font-medium">
                         <option value="ចម្រៀងសម័យទំនើប">ចម្រៀងសម័យទំនើប (Modern)</option>
                         <option value="ចម្រៀងសម័យដើម">ចម្រៀងសម័យដើម (Classic)</option>
                         <option value="ចម្រៀង Rap">ចម្រៀង Rap (Rap)</option>
@@ -430,10 +506,12 @@
                 </div>
 
                 <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
-                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
+                    <button type="button" onclick="closeEditModal()"
+                        class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
                         Cancel
                     </button>
-                    <button type="submit" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-brand-600/20 transition flex items-center gap-1.5">
+                    <button type="submit"
+                        class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-brand-600/20 transition flex items-center gap-1.5">
                         <i class="fa-solid fa-check"></i> Save Changes
                     </button>
                 </div>
@@ -463,6 +541,17 @@
                 }
             });
         });
+        function toggleSecretKeyVisibility() {
+            const input = document.getElementById('r2SecretKey');
+            const icon = document.getElementById('secretKeyEyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash text-xs';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye text-xs';
+            }
+        }
 
         // Strips any space in front, invisible zero-width spaces, and normalizes Sisamuth variations
         function normalizeKhmer(str) {
@@ -600,7 +689,8 @@
             const status = document.getElementById('imagePreviewStatus');[cite: 5]
             const urlText = document.getElementById('imagePreviewUrlText');[cite: 5]
 
-            if (url && url.startsWith('http')) {[cite: 5]
+            if (url && url.startsWith('http')) {
+                [cite: 5]
                 thumb.src = url;[cite: 5]
                 status.textContent = "✓ Image Attached";[cite: 5]
                 status.className = "text-[11px] font-semibold text-emerald-600 truncate";[cite: 5]
@@ -622,7 +712,7 @@
             const imageInput = document.getElementById('songImage');[cite: 5]
 
             const cleanTarget = normalizeKhmer(existingFolder).toLowerCase();
-            const existingSong = songsCatalog.find(s => 
+            const existingSong = songsCatalog.find(s =>
                 (s.singer && normalizeKhmer(s.singer).toLowerCase() === cleanTarget) ||
                 (s.url && normalizeKhmer(decodeURIComponent(s.url)).toLowerCase().startsWith(cleanTarget + '/'))
             );
@@ -675,7 +765,8 @@
 
         function handleFileSelected(input) {
             const label = document.getElementById('fileLabelText');[cite: 5]
-            if (input.files && input.files[0]) {[cite: 5]
+            if (input.files && input.files[0]) {
+                [cite: 5]
                 const file = input.files[0];[cite: 5]
                 label.textContent = `Selected: ${file.name} (${formatBytes(file.size)})`;[cite: 5]
                 label.className = "text-xs text-brand-700 font-bold mb-0.5 truncate max-w-xs";[cite: 5]
@@ -685,8 +776,10 @@
                 let singer = "";[cite: 5]
 
                 const separators = [" - ", " – ", " | ", "_", ", "];[cite: 5]
-                for (let sep of separators) {[cite: 5]
-                    if (baseName.includes(sep)) {[cite: 5]
+                for (let sep of separators) {
+                    [cite: 5]
+                    if (baseName.includes(sep)) {
+                        [cite: 5]
                         const parts = baseName.split(sep);[cite: 5]
                         title = parts[0].trim();[cite: 5]
                         singer = parts.slice(1).join(" ").trim();[cite: 5]
@@ -698,7 +791,8 @@
                 singer = cleanString(singer);
 
                 document.getElementById('songTitle').value = title;[cite: 5]
-                if (singer) {[cite: 5]
+                if (singer) {
+                    [cite: 5]
                     const matched = findExistingFolderMatch(singer);
                     document.getElementById('songSinger').value = matched;
                     applySingerProfile(matched);
@@ -710,7 +804,8 @@
         }
 
         function handleImageFileSelected(input) {
-            if (input.files && input.files[0]) {[cite: 5]
+            if (input.files && input.files[0]) {
+                [cite: 5]
                 uploadedImageFile = input.files[0];[cite: 5]
                 document.getElementById('songImage').value = `[Selected local file: ${uploadedImageFile.name}]`;[cite: 5]
                 const thumb = document.getElementById('imagePreviewThumb');[cite: 5]
@@ -745,19 +840,22 @@
             const accessKeyId = document.getElementById('r2AccessKey').value.trim();[cite: 5]
             const secretAccessKey = document.getElementById('r2SecretKey').value.trim();[cite: 5]
 
-            if (!accountId || !accessKeyId || !secretAccessKey) {[cite: 5]
+            if (!accountId || !accessKeyId || !secretAccessKey) {
+                [cite: 5]
                 return null;
             }
 
-            AWS.config.update({[cite: 5]
-                accessKeyId: accessKeyId,[cite: 5]
-                secretAccessKey: secretAccessKey,[cite: 5]
+            AWS.config.update({
+                [cite: 5]
+                accessKeyId: accessKeyId, [cite: 5]
+                secretAccessKey: secretAccessKey, [cite: 5]
                 region: 'us-east-1'[cite: 5]
             });
 
-            return new AWS.S3({[cite: 5]
-                endpoint: `https://${accountId}.r2.cloudflarestorage.com`,[cite: 5]
-                signatureVersion: 'v4',[cite: 5]
+            return new AWS.S3({
+                [cite: 5]
+                endpoint: `https://${accountId}.r2.cloudflarestorage.com`, [cite: 5]
+                signatureVersion: 'v4', [cite: 5]
                 s3ForcePathStyle: true[cite: 5]
             });
         }
@@ -791,7 +889,8 @@
             const bucketName = document.getElementById('r2BucketName').value.trim();[cite: 5]
 
             const missing = songsCatalog.filter(s => !s.size || s.size <= 0);[cite: 5]
-            if (missing.length === 0) {[cite: 5]
+            if (missing.length === 0) {
+                [cite: 5]
                 showStatus('All songs already have file sizes!', 'emerald');[cite: 5]
                 return;[cite: 5]
             }
@@ -799,19 +898,23 @@
             showStatus(`Fetching sizes for ${missing.length} songs...`, 'blue');[cite: 5]
             let updatedCount = 0;[cite: 5]
 
-            if (s3) {[cite: 5]
+            if (s3) {
+                [cite: 5]
                 try {
                     let continuationToken = null;[cite: 5]
                     const r2ObjectsMap = new Map();[cite: 5]
 
                     do {
-                        const res = await s3.listObjectsV2({[cite: 5]
-                            Bucket: bucketName,[cite: 5]
+                        const res = await s3.listObjectsV2({
+                            [cite: 5]
+                            Bucket: bucketName, [cite: 5]
                             ContinuationToken: continuationToken[cite: 5]
                         }).promise();[cite: 5]
 
-                        if (res && res.Contents) {[cite: 5]
-                            res.Contents.forEach(obj => {[cite: 5]
+                        if (res && res.Contents) {
+                            [cite: 5]
+                            res.Contents.forEach(obj => {
+                                [cite: 5]
                                 r2ObjectsMap.set(obj.Key, obj.Size);[cite: 5]
                                 r2ObjectsMap.set(decodeURIComponent(obj.Key), obj.Size);[cite: 5]
                             });
@@ -819,39 +922,46 @@
                         continuationToken = res.IsTruncated ? res.NextContinuationToken : null;[cite: 5]
                     } while (continuationToken);[cite: 5]
 
-                    for (let song of missing) {[cite: 5]
-                        const rawKey = song.url.startsWith('http') [cite: 5]
-                            ? song.url.split('.dev/').pop() [cite: 5]
+                    for (let song of missing) {
+                        [cite: 5]
+                        const rawKey = song.url.startsWith('http')[cite: 5]
+                            ?song.url.split('.dev/').pop()[cite: 5]
                             : song.url;[cite: 5]
                         const decodedKey = decodeURIComponent(rawKey);[cite: 5]
 
-                        if (r2ObjectsMap.has(rawKey)) {[cite: 5]
+                        if (r2ObjectsMap.has(rawKey)) {
+                            [cite: 5]
                             song.size = r2ObjectsMap.get(rawKey);[cite: 5]
                             updatedCount++;[cite: 5]
-                        } else if (r2ObjectsMap.has(decodedKey)) {[cite: 5]
+                        } else if (r2ObjectsMap.has(decodedKey)) {
+                            [cite: 5]
                             song.size = r2ObjectsMap.get(decodedKey);[cite: 5]
                             updatedCount++;[cite: 5]
                         }
                     }
-                } catch (err) {[cite: 5]
+                } catch (err) {
+                    [cite: 5]
                     console.warn('Batch lookup fallback:', err);[cite: 5]
                 }
             }
 
             const remaining = songsCatalog.filter(s => !s.size || s.size <= 0);[cite: 5]
-            for (let song of remaining) {[cite: 5]
+            for (let song of remaining) {
+                [cite: 5]
                 try {
-                    const fullUrl = song.url.startsWith('http') [cite: 5]
-                        ? song.url [cite: 5]
+                    const fullUrl = song.url.startsWith('http')[cite: 5]
+                        ?song.url[cite: 5]
                         : `${baseUrl}/${song.url}`;[cite: 5]
 
                     const res = await fetch(fullUrl, { method: 'HEAD' });[cite: 5]
                     const lengthHeader = res.headers.get('content-length');[cite: 5]
-                    if (lengthHeader) {[cite: 5]
+                    if (lengthHeader) {
+                        [cite: 5]
                         song.size = parseInt(lengthHeader, 10);[cite: 5]
                         updatedCount++;[cite: 5]
                     }
-                } catch (e) {[cite: 5]
+                } catch (e) {
+                    [cite: 5]
                     console.warn(`Could not fetch size for ${song.title}:`, e);[cite: 5]
                 }
             }
@@ -867,9 +977,11 @@
             try {
                 showStatus('Syncing songs.json from R2...', 'blue');[cite: 5]
                 const response = await fetch(`${baseUrl}/songs.json?t=${Date.now()}`);[cite: 5]
-                if (response.ok) {[cite: 5]
+                if (response.ok) {
+                    [cite: 5]
                     const data = await response.json();[cite: 5]
-                    if (Array.isArray(data)) {[cite: 5]
+                    if (Array.isArray(data)) {
+                        [cite: 5]
                         songsCatalog = data;[cite: 5]
                         applyAllFilters();[cite: 5]
                         updateDropdownLists();[cite: 5]
@@ -877,14 +989,16 @@
                         showStatus('Successfully synced songs.json from R2!', 'emerald');[cite: 5]
 
                         const hasMissingSizes = songsCatalog.some(s => !s.size || s.size <= 0);[cite: 5]
-                        if (hasMissingSizes) {[cite: 5]
+                        if (hasMissingSizes) {
+                            [cite: 5]
                             fetchMissingSizes();[cite: 5]
                         }
                         return;[cite: 5]
                     }
                 }
                 showStatus('No remote songs.json found yet. Starting empty.', 'slate');[cite: 5]
-            } catch (err) {[cite: 5]
+            } catch (err) {
+                [cite: 5]
                 console.log('Could not fetch remote songs.json:', err);[cite: 5]
                 showStatus('Offline mode / empty catalog.', 'slate');[cite: 5]
             }
@@ -895,10 +1009,11 @@
             const currentVal = select.value;[cite: 5]
             const singers = getUniqueSingers();
 
-            select.innerHTML = '<option value="">All Singers</option>' +[cite: 5]
-                singers.map(s => `<option value="${s.replace(/"/g, '&quot;')}">${s}</option>`).join('');[cite: 5]
+            select.innerHTML = '<option value="">All Singers</option>' + [cite: 5]
+            singers.map(s => `<option value="${s.replace(/"/g, '&quot;')}">${s}</option>`).join('');[cite: 5]
 
-            if (singers.includes(currentVal)) {[cite: 5]
+            if (singers.includes(currentVal)) {
+                [cite: 5]
                 select.value = currentVal;[cite: 5]
             }
         }
@@ -909,19 +1024,24 @@
             const singerQuery = (document.getElementById('filterSingerSelect')?.value || '').replace(/^\s+/, '').trim().toLowerCase();
             const sizeOption = document.getElementById('filterSizeSelect')?.value || '';[cite: 5]
 
-            filteredCatalog = songsCatalog.filter(song => {[cite: 5]
-                if (titleQuery && !song.title.toLowerCase().includes(titleQuery)) {[cite: 5]
+            filteredCatalog = songsCatalog.filter(song => {
+                [cite: 5]
+                if (titleQuery && !song.title.toLowerCase().includes(titleQuery)) {
+                    [cite: 5]
                     return false;[cite: 5]
                 }
 
-                if (categoryQuery && (!song.category || !song.category.toLowerCase().includes(categoryQuery))) {[cite: 5]
+                if (categoryQuery && (!song.category || !song.category.toLowerCase().includes(categoryQuery))) {
+                    [cite: 5]
                     return false;[cite: 5]
                 }
 
-                if (singerQuery) {[cite: 5]
+                if (singerQuery) {
+                    [cite: 5]
                     const sName = normalizeKhmer(song.singer || '').toLowerCase();[cite: 5]
                     const sUrl = normalizeKhmer(decodeURIComponent(song.url || '')).toLowerCase();[cite: 5]
-                    if (!sName.includes(singerQuery) && !sUrl.includes(singerQuery)) {[cite: 5]
+                    if (!sName.includes(singerQuery) && !sUrl.includes(singerQuery)) {
+                        [cite: 5]
                         return false;[cite: 5]
                     }
                 }
@@ -934,9 +1054,11 @@
                 return true;[cite: 5]
             });
 
-            if (sizeOption === 'sort_desc') {[cite: 5]
+            if (sizeOption === 'sort_desc') {
+                [cite: 5]
                 filteredCatalog.sort((a, b) => (Number(b.size) || 0) - (Number(a.size) || 0));[cite: 5]
-            } else if (sizeOption === 'sort_asc') {[cite: 5]
+            } else if (sizeOption === 'sort_asc') {
+                [cite: 5]
                 filteredCatalog.sort((a, b) => (Number(a.size) || 0) - (Number(b.size) || 0));[cite: 5]
             }
 
@@ -970,7 +1092,8 @@
 
         function toggleSingerDropdown() {
             const menu = document.getElementById('singerDropdownMenu');[cite: 5]
-            if (menu.style.display === 'block') {[cite: 5]
+            if (menu.style.display === 'block') {
+                [cite: 5]
                 menu.style.display = 'none';[cite: 5]
             } else {
                 renderSingerDropdown(document.getElementById('songSinger').value);[cite: 5]
@@ -983,10 +1106,11 @@
             const singers = getUniqueSingers();
 
             const filtered = cleanFilter[cite: 5]
-                ? singers.filter(s => s.toLowerCase().includes(cleanFilter))[cite: 5]
+                ?singers.filter(s => s.toLowerCase().includes(cleanFilter))[cite: 5]
                 : singers;[cite: 5]
 
-            if (filtered.length === 0) {[cite: 5]
+            if (filtered.length === 0) {
+                [cite: 5]
                 menu.innerHTML = `<div class="p-3 text-xs text-slate-400 text-center">គ្មានឈ្មោះត្រូវគ្នាទេ (វាយដើម្បីបង្កើតថ្មី)</div>`;[cite: 5]
             } else {
                 menu.innerHTML = filtered.map(s => `
@@ -1005,7 +1129,8 @@
 
         function toggleFolderDropdown() {
             const menu = document.getElementById('folderDropdownMenu');[cite: 5]
-            if (menu.style.display === 'block') {[cite: 5]
+            if (menu.style.display === 'block') {
+                [cite: 5]
                 menu.style.display = 'none';[cite: 5]
             } else {
                 renderFolderDropdown(document.getElementById('songFolder').value);[cite: 5]
@@ -1018,10 +1143,11 @@
             const folders = getUniqueFolders();
 
             const filtered = cleanFilter[cite: 5]
-                ? folders.filter(f => f.toLowerCase().includes(cleanFilter))[cite: 5]
+                ?folders.filter(f => f.toLowerCase().includes(cleanFilter))[cite: 5]
                 : folders;[cite: 5]
 
-            if (filtered.length === 0) {[cite: 5]
+            if (filtered.length === 0) {
+                [cite: 5]
                 menu.innerHTML = `<div class="p-3 text-xs text-slate-400 text-center">គ្មាន Folder ត្រូវគ្នាទេ (វាយដើម្បីបង្កើតថ្មី)</div>`;[cite: 5]
             } else {
                 menu.innerHTML = filtered.map(f => `
@@ -1039,24 +1165,26 @@
             const title = cleanString(document.getElementById('songTitle').value);[cite: 5]
             const singer = cleanString(document.getElementById('songSinger').value);[cite: 5]
             const category = document.getElementById('songCategory').value;[cite: 5]
-            
+
             const rawFolder = document.getElementById('songFolder').value || singer;[cite: 5]
             const folder = findExistingFolderMatch(rawFolder);
-            
+
             let image = document.getElementById('songImage').value.replace(/^\s+/, '').trim();
             const fileInput = document.getElementById('audioFile');[cite: 5]
             const file = fileInput.files[0];[cite: 5]
 
-            if (!file) {[cite: 5]
+            if (!file) {
+                [cite: 5]
                 alert('Please select an MP3 file to upload.');[cite: 5]
                 return;[cite: 5]
             }
 
-            const titleExists = songsCatalog.some(song => 
+            const titleExists = songsCatalog.some(song =>
                 song.title.toLowerCase() === title.toLowerCase()[cite: 5]
             );
 
-            if (titleExists) {[cite: 5]
+            if (titleExists) {
+                [cite: 5]
                 alert(`⚠️ Upload Blocked: The song title "${title}" already exists in your catalog!`);[cite: 5]
                 return;[cite: 5]
             }
@@ -1089,12 +1217,14 @@
             const startTime = Date.now();
 
             try {
-                if (uploadedImageFile) {[cite: 5]
+                if (uploadedImageFile) {
+                    [cite: 5]
                     const imgKey = `singers/${folder}/profile.jpg`;
-                    await s3.putObject({[cite: 5]
-                        Bucket: bucketName,[cite: 5]
-                        Key: imgKey,[cite: 5]
-                        Body: uploadedImageFile,[cite: 5]
+                    await s3.putObject({
+                        [cite: 5]
+                        Bucket: bucketName, [cite: 5]
+                        Key: imgKey, [cite: 5]
+                        Body: uploadedImageFile, [cite: 5]
                         ContentType: uploadedImageFile.type || 'image/jpeg'[cite: 5]
                     }).promise();[cite: 5]
                     image = `${baseUrl}/singers/${encodeURIComponent(folder)}/profile.jpg`;
@@ -1130,11 +1260,12 @@
 
                 await uploadManaged.promise();
 
-                const newSong = {[cite: 5]
-                    title,[cite: 5]
-                    singer,[cite: 5]
-                    category,[cite: 5]
-                    image: image && !image.startsWith('[Selected') ? image : `${baseUrl}/singers/${encodeURIComponent(folder)}/profile.jpg`,[cite: 5]
+                const newSong = {
+                    [cite: 5]
+                    title, [cite: 5]
+                    singer, [cite: 5]
+                    category, [cite: 5]
+                    image: image && !image.startsWith('[Selected') ? image : `${baseUrl}/singers/${encodeURIComponent(folder)}/profile.jpg`, [cite: 5]
                     url: r2Path,
                     size: file.size[cite: 5]
                 };
@@ -1156,7 +1287,8 @@
                 uploadedImageFile = null;[cite: 5]
 
                 showStatus('MP3 uploaded successfully into folder! Click "Publish to R2" to save live catalog.', 'emerald');
-            } catch (err) {[cite: 5]
+            } catch (err) {
+                [cite: 5]
                 alert('R2 Upload Failed: ' + err.message);[cite: 5]
                 showStatus('Upload failed!', 'rose');[cite: 5]
             } finally {
@@ -1179,16 +1311,19 @@
 
             const jsonString = JSON.stringify(songsCatalog, null, 2);[cite: 5]
 
-            s3.upload({[cite: 5]
-                Bucket: bucketName,[cite: 5]
-                Key: 'songs.json',[cite: 5]
-                Body: jsonString,[cite: 5]
+            s3.upload({
+                [cite: 5]
+                Bucket: bucketName, [cite: 5]
+                Key: 'songs.json', [cite: 5]
+                Body: jsonString, [cite: 5]
                 ContentType: 'application/json'[cite: 5]
-            }, function (err, data) {[cite: 5]
+            }, function (err, data) {
+                [cite: 5]
                 publishBtn.disabled = false;[cite: 5]
                 publishBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Publish to R2`;[cite: 5]
 
-                if (err) {[cite: 5]
+                if (err) {
+                    [cite: 5]
                     alert('Failed to publish songs.json: ' + err.message);[cite: 5]
                     showStatus('Publish failed!', 'rose');[cite: 5]
                     return;[cite: 5]
@@ -1234,7 +1369,7 @@
                 return;
             }
 
-            const isDuplicate = songsCatalog.some((s, i) => 
+            const isDuplicate = songsCatalog.some((s, i) =>
                 i !== idx && s.title.toLowerCase() === newTitle.toLowerCase()
             );
 
@@ -1258,7 +1393,8 @@
             const song = filteredCatalog[indexInFiltered];[cite: 5]
             if (!song) return;[cite: 5]
 
-            if (!confirm(`Are you sure you want to delete "${song.title}" from R2?`)) {[cite: 5]
+            if (!confirm(`Are you sure you want to delete "${song.title}" from R2?`)) {
+                [cite: 5]
                 return;[cite: 5]
             }
 
@@ -1267,16 +1403,19 @@
 
             const bucketName = document.getElementById('r2BucketName').value.trim();[cite: 5]
             const r2Path = song.url.startsWith('http')[cite: 5]
-                ? decodeURIComponent(song.url.split('.dev/').pop())[cite: 5]
+                ?decodeURIComponent(song.url.split('.dev/').pop())[cite: 5]
                 : decodeURIComponent(song.url);[cite: 5]
 
             showStatus('Deleting MP3 from R2...', 'blue');[cite: 5]
 
-            s3.deleteObject({[cite: 5]
-                Bucket: bucketName,[cite: 5]
+            s3.deleteObject({
+                [cite: 5]
+                Bucket: bucketName, [cite: 5]
                 Key: r2Path[cite: 5]
-            }, async function (err, data) {[cite: 5]
-                if (err) {[cite: 5]
+            }, async function (err, data) {
+                [cite: 5]
+                if (err) {
+                    [cite: 5]
                     alert('Failed to delete file from R2: ' + err.message);[cite: 5]
                     showStatus('R2 delete failed', 'rose');[cite: 5]
                     return;[cite: 5]
@@ -1284,18 +1423,21 @@
 
                 const rawIdx = songsCatalog.indexOf(song);[cite: 5]
                 if (rawIdx !== -1) songsCatalog.splice(rawIdx, 1);[cite: 5]
-                
+
                 populateSingerFilterDropdown();[cite: 5]
                 applyAllFilters();[cite: 5]
 
                 const jsonString = JSON.stringify(songsCatalog, null, 2);[cite: 5]
-                s3.putObject({[cite: 5]
-                    Bucket: bucketName,[cite: 5]
-                    Key: 'songs.json',[cite: 5]
-                    Body: jsonString,[cite: 5]
+                s3.putObject({
+                    [cite: 5]
+                    Bucket: bucketName, [cite: 5]
+                    Key: 'songs.json', [cite: 5]
+                    Body: jsonString, [cite: 5]
                     ContentType: 'application/json'[cite: 5]
-                }, function (pubErr, pubData) {[cite: 5]
-                    if (pubErr) {[cite: 5]
+                }, function (pubErr, pubData) {
+                    [cite: 5]
+                    if (pubErr) {
+                        [cite: 5]
                         showStatus('Catalog sync failed', 'rose');[cite: 5]
                         return;[cite: 5]
                     }
@@ -1305,7 +1447,8 @@
         }
 
         function clearAllSongs() {
-            if (confirm('Are you sure you want to clear all songs from the catalog?')) {[cite: 5]
+            if (confirm('Are you sure you want to clear all songs from the catalog?')) {
+                [cite: 5]
                 songsCatalog = [];[cite: 5]
                 filteredCatalog = [];[cite: 5]
                 currentPage = 1;[cite: 5]
@@ -1336,14 +1479,15 @@
             const pageItems = filteredCatalog.slice(startIdx, endIdx);[cite: 5]
 
             pageInfoText.textContent = total === 0[cite: 5]
-                ? 'Showing 0 of 0'[cite: 5]
+                ?'Showing 0 of 0'[cite: 5]
                 : `Showing ${startIdx + 1}–${endIdx} of ${total}`;[cite: 5]
             pageBadge.textContent = `${currentPage} / ${maxPage}`;[cite: 5]
 
             prevBtn.disabled = currentPage <= 1;[cite: 5]
             nextBtn.disabled = currentPage >= maxPage;[cite: 5]
 
-            if (pageItems.length === 0) {[cite: 5]
+            if (pageItems.length === 0) {
+                [cite: 5]
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="5" class="px-4 py-10 text-center text-slate-400 text-xs">
@@ -1354,7 +1498,8 @@
                 return;[cite: 5]
             }
 
-            tbody.innerHTML = pageItems.map((song, i) => {[cite: 5]
+            tbody.innerHTML = pageItems.map((song, i) => {
+                [cite: 5]
                 const actualIndex = startIdx + i;[cite: 5]
                 const displaySize = song.size ? formatBytes(song.size) : '--';[cite: 5]
                 return `
