@@ -148,6 +148,7 @@
                 </div>
             </div>
 
+            <!-- Upload Card -->
             <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
                 <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2 mb-4">
                     <i class="fa-solid fa-circle-plus text-brand-600"></i> Upload New Song to R2
@@ -169,7 +170,9 @@
                     <div>
                         <label class="block text-xs font-medium text-slate-600 mb-1.5">Song Title (ចំណងជើងបទចម្រៀង)</label>
                         <input type="text" id="songTitle" required placeholder="Clean song title..."
-                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500">
+                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500"
+                            oninput="this.value = this.value.replace(/^\s+/, '')"
+                            onblur="this.value = this.value.replace(/^\s+/, '').trim()">
                     </div>
 
                     <div class="relative">
@@ -177,7 +180,9 @@
                         <div class="relative">
                             <input type="text" id="songSinger" required placeholder="Type or select artist..."
                                 class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 pr-10 text-sm text-slate-800 focus:outline-none focus:border-brand-500"
-                                oninput="onSingerInputChanged(this)" onfocus="showSingerDropdown()" autocomplete="off">
+                                oninput="this.value = this.value.replace(/^\s+/, ''); onSingerInputChanged(this)"
+                                onblur="this.value = this.value.replace(/^\s+/, '').trim()"
+                                onfocus="showSingerDropdown()" autocomplete="off">
                             <div onclick="toggleSingerDropdown()" class="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-slate-400 hover:text-brand-600 px-1">
                                 <i class="fa-solid fa-chevron-down text-xs"></i>
                             </div>
@@ -203,7 +208,9 @@
                             <div class="relative">
                                 <input type="text" id="songFolder" required placeholder="Artist folder..."
                                     class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 pr-10 text-sm text-slate-800 focus:outline-none focus:border-brand-500"
-                                    oninput="onFolderInputChanged(this)" onfocus="showFolderDropdown()" autocomplete="off">
+                                    oninput="this.value = this.value.replace(/^\s+/, ''); onFolderInputChanged(this)"
+                                    onblur="this.value = this.value.replace(/^\s+/, '').trim()"
+                                    onfocus="showFolderDropdown()" autocomplete="off">
                                 <div onclick="toggleFolderDropdown()" class="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-slate-400 hover:text-brand-600 px-1">
                                     <i class="fa-solid fa-chevron-down text-xs"></i>
                                 </div>
@@ -216,13 +223,14 @@
                         <label class="block text-xs font-medium text-slate-600 mb-1.5">Album Art / Singer Image</label>
                         <div class="space-y-2">
                             <div class="flex items-center gap-2">
-                                <input type="text" id="songImage" oninput="refreshImagePreview(this.value)" placeholder="Auto-fills from singers/{folder}/profile.jpg"
+                                <input type="text" id="songImage" oninput="this.value = this.value.replace(/^\s+/, ''); refreshImagePreview(this.value)" placeholder="Auto-fills from singers/{folder}/profile.jpg"
                                     class="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-brand-500">
                                 <label for="imageFile" class="cursor-pointer px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-medium rounded-xl transition flex items-center gap-1.5 whitespace-nowrap">
                                     <i class="fa-solid fa-upload"></i> Upload Image
                                 </label>
                                 <input type="file" id="imageFile" accept="image/*" class="hidden" onchange="handleImageFileSelected(this)">
                             </div>
+                            <!-- Live Thumbnail Preview Badge -->
                             <div id="imagePreviewContainer" class="flex items-center gap-2.5 p-2 bg-slate-50 border border-slate-200 rounded-xl">
                                 <img id="imagePreviewThumb" src="" alt="Cover Preview" class="w-10 h-10 rounded-lg object-cover bg-slate-200 border border-slate-300 shrink-0" onerror="handleImageError(this)">
                                 <div class="overflow-hidden">
@@ -233,22 +241,20 @@
                         </div>
                     </div>
 
-                    <!-- Upload Progress Bar -->
-                    <div id="uploadProgressContainer" class="hidden bg-slate-50 border border-brand-200 rounded-xl p-3 space-y-2">
-                        <div class="flex justify-between items-center text-xs">
-                            <span id="uploadProgressTitle" class="font-semibold text-brand-700 flex items-center gap-1.5">
-                                <i class="fa-solid fa-spinner fa-spin"></i> Uploading to R2...
+                    <!-- Live Upload Progress Bar Container (Hidden by default) -->
+                    <div id="uploadProgressContainer" class="hidden space-y-2 bg-brand-50/70 p-3.5 rounded-xl border border-brand-200">
+                        <div class="flex items-center justify-between text-xs font-semibold text-brand-900">
+                            <span id="uploadProgressLabel" class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-spinner fa-spin text-brand-600"></i> Uploading MP3 to R2...
                             </span>
-                            <span id="uploadProgressPercent" class="font-bold font-mono text-brand-600">0%</span>
+                            <span id="uploadProgressPercent" class="font-mono text-brand-700 font-bold">0%</span>
                         </div>
-                        
-                        <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
-                            <div id="uploadProgressBar" class="bg-brand-600 h-full rounded-full transition-all duration-150" style="width: 0%"></div>
+                        <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                            <div id="uploadProgressBar" class="bg-gradient-to-r from-brand-500 to-indigo-600 h-2.5 rounded-full transition-all duration-150 ease-out" style="width: 0%"></div>
                         </div>
-
-                        <div class="flex justify-between items-center text-[10px] text-slate-500 font-mono">
+                        <div class="flex items-center justify-between text-[11px] text-slate-500 font-mono">
                             <span id="uploadBytesText">0 MB / 0 MB</span>
-                            <span id="uploadSpeedEtaText">-- KB/s • ETA: --s</span>
+                            <span id="uploadTimeSpeedText">-- KB/s • ETA: --s</span>
                         </div>
                     </div>
 
@@ -264,6 +270,7 @@
 
             <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex-1 flex flex-col">
                 
+                <!-- Header with Title & Action Buttons -->
                 <div class="flex items-center justify-between gap-3 mb-3">
                     <div class="flex items-center gap-2">
                         <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2">
@@ -286,7 +293,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 mb-4 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
                     <div class="relative">
                         <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <input type="text" id="filterTitleInput" placeholder="Filter title..." oninput="applyAllFilters()"
+                        <input type="text" id="filterTitleInput" placeholder="Filter title..." oninput="this.value = this.value.replace(/^\s+/, ''); applyAllFilters()"
                             class="w-full bg-white border border-slate-300 rounded-lg pl-8 pr-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-brand-500">
                     </div>
 
@@ -372,37 +379,40 @@
         </div>
     </main>
 
-    <!-- Modal for Editing Song (Title, Singer, Category) -->
+    <!-- Modal Dialog: Edit Song Details -->
     <div id="editSongModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all">
-            <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-                <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                    <i class="fa-solid fa-pen-to-square text-brand-600"></i> Edit Song Metadata
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 transform transition-all">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
+                <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-brand-600"></i> Edit Song Details
                 </h3>
-                <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
-                    <i class="fa-solid fa-xmark text-lg"></i>
+                <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-            
-            <form id="editSongForm" onsubmit="saveEditedSong(event)" class="p-6 space-y-4">
+
+            <form id="editSongForm" onsubmit="saveEditedSong(event)" class="space-y-4">
                 <input type="hidden" id="editSongIndex">
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Song Title (ចំណងជើងបទចម្រៀង)</label>
-                    <input type="text" id="editSongTitle" required
-                        class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500">
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Song Title (ចំណងជើង)</label>
+                    <input type="text" id="editTitleInput" required
+                        class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500"
+                        oninput="this.value = this.value.replace(/^\s+/, '')"
+                        onblur="this.value = this.value.replace(/^\s+/, '').trim()">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Artist / Singer (តារាចម្រៀង)</label>
-                    <input type="text" id="editSongSinger" required
-                        class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500">
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Artist / Singer (តារាចម្រៀង)</label>
+                    <input type="text" id="editSingerInput" required
+                        class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500"
+                        oninput="this.value = this.value.replace(/^\s+/, '')"
+                        onblur="this.value = this.value.replace(/^\s+/, '').trim()">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Category (ប្រភេទ)</label>
-                    <select id="editSongCategory" required
-                        class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500 font-medium">
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Category (ប្រភេទ)</label>
+                    <select id="editCategorySelect" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500 font-medium">
                         <option value="ចម្រៀងសម័យទំនើប">ចម្រៀងសម័យទំនើប (Modern)</option>
                         <option value="ចម្រៀងសម័យដើម">ចម្រៀងសម័យដើម (Classic)</option>
                         <option value="ចម្រៀង Rap">ចម្រៀង Rap (Rap)</option>
@@ -414,17 +424,16 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">R2 Audio Path (Fixed)</label>
-                    <input type="text" id="editSongPath" disabled
-                        class="w-full bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-500 cursor-not-allowed">
-                    <p class="text-[10px] text-slate-400 mt-1">Audio file path on Cloudflare R2 cannot be renamed directly.</p>
+                    <label class="block text-xs font-medium text-slate-500 mb-1">R2 Audio Path (Fixed)</label>
+                    <input type="text" id="editUrlInput" disabled
+                        class="w-full bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-500 font-mono cursor-not-allowed">
                 </div>
 
                 <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
-                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition">
+                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
                         Cancel
                     </button>
-                    <button type="submit" class="px-5 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-xl shadow-md shadow-brand-600/20 transition flex items-center gap-1.5">
+                    <button type="submit" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-brand-600/20 transition flex items-center gap-1.5">
                         <i class="fa-solid fa-check"></i> Save Changes
                     </button>
                 </div>
@@ -455,17 +464,30 @@
             });
         });
 
+        // Strips any space in front, invisible zero-width spaces, and normalizes Sisamuth variations
         function normalizeKhmer(str) {
             if (!str) return '';
             let s = str
-                .replace(/[\u200B-\u200D\uFEFF]/g, '')
-                .replace(/\s+/g, ' ')
+                .replace(/^\s+/, '')                   // Remove all leading spaces in front
+                .replace(/[\u200B-\u200D\uFEFF]/g, '') // remove zero-width spaces[cite: 5]
+                .replace(/\s+/g, ' ')                  // collapse multiple whitespace[cite: 5]
                 .trim();
 
             if (s.includes('សាមុត') || s.toLowerCase().includes('sisamuth') || s.toLowerCase().includes('sisamouth')) {
                 return 'ស៊ីន ស៊ីសាមុត';
             }
             return s;
+        }
+
+        // Cleans punctuation, removes file extensions, and strips all spaces in front
+        function cleanString(str) {
+            if (!str) return '';
+            return str
+                .replace(/^\s+/, '')                   // Remove any space in front
+                .replace(/\.mp3$/i, '')[cite: 5]
+                .replace(/["'`«»„“”‘’]/g, '')[cite: 5]
+                .replace(/[,]/g, '')[cite: 5]
+                .trim();
         }
 
         function getKhmerRootKey(str) {
@@ -560,44 +582,44 @@
         }
 
         function formatBytes(bytes) {
-            if (!bytes || isNaN(bytes) || bytes <= 0) return '0 Bytes';
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(1024));
-            return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + sizes[i];
+            if (!bytes || isNaN(bytes) || bytes <= 0) return '--';[cite: 5]
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];[cite: 5]
+            const i = Math.floor(Math.log(bytes) / Math.log(1024));[cite: 5]
+            return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + sizes[i];[cite: 5]
         }
 
         function handleImageError(img) {
-            img.src = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500';
-            const status = document.getElementById('imagePreviewStatus');
-            status.textContent = "⚠ Image not found at URL";
-            status.className = "text-[11px] font-semibold text-amber-600 truncate";
+            img.src = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500';[cite: 5]
+            const status = document.getElementById('imagePreviewStatus');[cite: 5]
+            status.textContent = "⚠ Image not found at URL";[cite: 5]
+            status.className = "text-[11px] font-semibold text-amber-600 truncate";[cite: 5]
         }
 
         function refreshImagePreview(url) {
-            const thumb = document.getElementById('imagePreviewThumb');
-            const status = document.getElementById('imagePreviewStatus');
-            const urlText = document.getElementById('imagePreviewUrlText');
+            const thumb = document.getElementById('imagePreviewThumb');[cite: 5]
+            const status = document.getElementById('imagePreviewStatus');[cite: 5]
+            const urlText = document.getElementById('imagePreviewUrlText');[cite: 5]
 
-            if (url && url.startsWith('http')) {
-                thumb.src = url;
-                status.textContent = "✓ Image Attached";
-                status.className = "text-[11px] font-semibold text-emerald-600 truncate";
-                urlText.textContent = url;
+            if (url && url.startsWith('http')) {[cite: 5]
+                thumb.src = url;[cite: 5]
+                status.textContent = "✓ Image Attached";[cite: 5]
+                status.className = "text-[11px] font-semibold text-emerald-600 truncate";[cite: 5]
+                urlText.textContent = url;[cite: 5]
             } else {
-                thumb.src = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500";
-                status.textContent = "No image loaded";
-                status.className = "text-[11px] font-semibold text-slate-700 truncate";
-                urlText.textContent = "Select an artist or enter folder name";
+                thumb.src = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500";[cite: 5]
+                status.textContent = "No image loaded";[cite: 5]
+                status.className = "text-[11px] font-semibold text-slate-700 truncate";[cite: 5]
+                urlText.textContent = "Select an artist or enter folder name";[cite: 5]
             }
         }
 
         function updateSingerImageUrl(targetFolder) {
-            const folderVal = (targetFolder || document.getElementById('songFolder').value || document.getElementById('songSinger').value).trim();
+            const folderVal = (targetFolder || document.getElementById('songFolder').value || document.getElementById('songSinger').value).replace(/^\s+/, '').trim();
             if (!folderVal) return;
 
             const existingFolder = findExistingFolderMatch(folderVal);
             const baseUrl = document.getElementById('r2BaseUrl').value.trim().replace(/\/+$/, '');
-            const imageInput = document.getElementById('songImage');
+            const imageInput = document.getElementById('songImage');[cite: 5]
 
             const cleanTarget = normalizeKhmer(existingFolder).toLowerCase();
             const existingSong = songsCatalog.find(s => 
@@ -611,15 +633,15 @@
                 imageInput.value = `${baseUrl}/singers/${encodeURIComponent(existingFolder)}/profile.jpg`;
             }
 
-            imageInput.scrollLeft = imageInput.scrollWidth;
-            refreshImagePreview(imageInput.value);
+            imageInput.scrollLeft = imageInput.scrollWidth;[cite: 5]
+            refreshImagePreview(imageInput.value);[cite: 5]
         }
 
         function applySingerProfile(rawInput) {
-            const input = (rawInput || '').trim();
+            const input = (rawInput || '').replace(/^\s+/, '').trim();
             if (!input) return;
 
-            const folderInput = document.getElementById('songFolder');
+            const folderInput = document.getElementById('songFolder');[cite: 5]
             const matchedFolder = findExistingFolderMatch(input);
 
             folderInput.value = matchedFolder;
@@ -627,124 +649,116 @@
         }
 
         function onSingerInputChanged(input) {
-            const val = input.value.trim();
+            const val = input.value.replace(/^\s+/, '').trim();
             if (val) applySingerProfile(val);
             renderSingerDropdown(val);
         }
 
         function onFolderInputChanged(input) {
-            renderFolderDropdown(input.value);
-            updateSingerImageUrl(input.value);
+            const val = input.value.replace(/^\s+/, '').trim();
+            renderFolderDropdown(val);
+            updateSingerImageUrl(val);
         }
 
         function selectSinger(name) {
             const target = findExistingFolderMatch(name);
             document.getElementById('songSinger').value = target;
-            document.getElementById('singerDropdownMenu').style.display = 'none';
+            document.getElementById('singerDropdownMenu').style.display = 'none';[cite: 5]
             applySingerProfile(target);
         }
 
         function selectFolder(name) {
-            document.getElementById('songFolder').value = name;
-            document.getElementById('folderDropdownMenu').style.display = 'none';
+            document.getElementById('songFolder').value = name;[cite: 5]
+            document.getElementById('folderDropdownMenu').style.display = 'none';[cite: 5]
             updateSingerImageUrl(name);
         }
 
-        function cleanString(str) {
-            if (!str) return '';
-            return str
-                .replace(/\.mp3$/i, '')
-                .replace(/["'`«»„“”‘’]/g, '')
-                .replace(/[,]/g, '')
-                .trim();
-        }
-
         function handleFileSelected(input) {
-            const label = document.getElementById('fileLabelText');
-            if (input.files && input.files[0]) {
-                const file = input.files[0];
-                label.textContent = `Selected: ${file.name} (${formatBytes(file.size)})`;
-                label.className = "text-xs text-brand-700 font-bold mb-0.5 truncate max-w-xs";
+            const label = document.getElementById('fileLabelText');[cite: 5]
+            if (input.files && input.files[0]) {[cite: 5]
+                const file = input.files[0];[cite: 5]
+                label.textContent = `Selected: ${file.name} (${formatBytes(file.size)})`;[cite: 5]
+                label.className = "text-xs text-brand-700 font-bold mb-0.5 truncate max-w-xs";[cite: 5]
 
-                let baseName = file.name.replace(/\.[^/.]+$/, "");
-                let title = baseName;
-                let singer = "";
+                let baseName = file.name.replace(/\.[^/.]+$/, "");[cite: 5]
+                let title = baseName;[cite: 5]
+                let singer = "";[cite: 5]
 
-                const separators = [" - ", " – ", " | ", "_", ", "];
-                for (let sep of separators) {
-                    if (baseName.includes(sep)) {
-                        const parts = baseName.split(sep);
-                        title = parts[0].trim();
-                        singer = parts.slice(1).join(" ").trim();
-                        break;
+                const separators = [" - ", " – ", " | ", "_", ", "];[cite: 5]
+                for (let sep of separators) {[cite: 5]
+                    if (baseName.includes(sep)) {[cite: 5]
+                        const parts = baseName.split(sep);[cite: 5]
+                        title = parts[0].trim();[cite: 5]
+                        singer = parts.slice(1).join(" ").trim();[cite: 5]
+                        break;[cite: 5]
                     }
                 }
 
                 title = cleanString(title);
                 singer = cleanString(singer);
 
-                document.getElementById('songTitle').value = title;
-                if (singer) {
+                document.getElementById('songTitle').value = title;[cite: 5]
+                if (singer) {[cite: 5]
                     const matched = findExistingFolderMatch(singer);
                     document.getElementById('songSinger').value = matched;
                     applySingerProfile(matched);
                 }
             } else {
-                label.textContent = "Click to browse or drop MP3 file here";
-                label.className = "text-xs text-slate-700 font-semibold mb-0.5";
+                label.textContent = "Click to browse or drop MP3 file here";[cite: 5]
+                label.className = "text-xs text-slate-700 font-semibold mb-0.5";[cite: 5]
             }
         }
 
         function handleImageFileSelected(input) {
-            if (input.files && input.files[0]) {
-                uploadedImageFile = input.files[0];
-                document.getElementById('songImage').value = `[Selected local file: ${uploadedImageFile.name}]`;
-                const thumb = document.getElementById('imagePreviewThumb');
-                thumb.src = URL.createObjectURL(uploadedImageFile);
-                document.getElementById('imagePreviewStatus').textContent = "✓ Local Image Ready";
-                document.getElementById('imagePreviewStatus').className = "text-[11px] font-semibold text-emerald-600 truncate";
-                document.getElementById('imagePreviewUrlText').textContent = uploadedImageFile.name;
-                showStatus('Image file ready for upload!', 'emerald');
+            if (input.files && input.files[0]) {[cite: 5]
+                uploadedImageFile = input.files[0];[cite: 5]
+                document.getElementById('songImage').value = `[Selected local file: ${uploadedImageFile.name}]`;[cite: 5]
+                const thumb = document.getElementById('imagePreviewThumb');[cite: 5]
+                thumb.src = URL.createObjectURL(uploadedImageFile);[cite: 5]
+                document.getElementById('imagePreviewStatus').textContent = "✓ Local Image Ready";[cite: 5]
+                document.getElementById('imagePreviewStatus').className = "text-[11px] font-semibold text-emerald-600 truncate";[cite: 5]
+                document.getElementById('imagePreviewUrlText').textContent = uploadedImageFile.name;[cite: 5]
+                showStatus('Image file ready for upload!', 'emerald');[cite: 5]
             }
         }
 
         function saveCredentials() {
-            localStorage.setItem('r2_base_url', document.getElementById('r2BaseUrl').value);
-            localStorage.setItem('r2_account_id', document.getElementById('r2AccountId').value);
-            localStorage.setItem('r2_access_key', document.getElementById('r2AccessKey').value);
-            localStorage.setItem('r2_secret_key', document.getElementById('r2SecretKey').value);
-            localStorage.setItem('r2_bucket_name', document.getElementById('r2BucketName').value);
-            showStatus('Credentials saved locally!', 'emerald');
+            localStorage.setItem('r2_base_url', document.getElementById('r2BaseUrl').value);[cite: 5]
+            localStorage.setItem('r2_account_id', document.getElementById('r2AccountId').value);[cite: 5]
+            localStorage.setItem('r2_access_key', document.getElementById('r2AccessKey').value);[cite: 5]
+            localStorage.setItem('r2_secret_key', document.getElementById('r2SecretKey').value);[cite: 5]
+            localStorage.setItem('r2_bucket_name', document.getElementById('r2BucketName').value);[cite: 5]
+            showStatus('Credentials saved locally!', 'emerald');[cite: 5]
             loadBucketLiveFolders();
         }
 
         function loadCredentials() {
-            if (localStorage.getItem('r2_base_url')) document.getElementById('r2BaseUrl').value = localStorage.getItem('r2_base_url');
-            if (localStorage.getItem('r2_account_id')) document.getElementById('r2AccountId').value = localStorage.getItem('r2_account_id');
-            if (localStorage.getItem('r2_access_key')) document.getElementById('r2AccessKey').value = localStorage.getItem('r2_access_key');
-            if (localStorage.getItem('r2_secret_key')) document.getElementById('r2SecretKey').value = localStorage.getItem('r2_secret_key');
-            if (localStorage.getItem('r2_bucket_name')) document.getElementById('r2BucketName').value = localStorage.getItem('r2_bucket_name');
+            if (localStorage.getItem('r2_base_url')) document.getElementById('r2BaseUrl').value = localStorage.getItem('r2_base_url');[cite: 5]
+            if (localStorage.getItem('r2_account_id')) document.getElementById('r2AccountId').value = localStorage.getItem('r2_account_id');[cite: 5]
+            if (localStorage.getItem('r2_access_key')) document.getElementById('r2AccessKey').value = localStorage.getItem('r2_access_key');[cite: 5]
+            if (localStorage.getItem('r2_secret_key')) document.getElementById('r2SecretKey').value = localStorage.getItem('r2_secret_key');[cite: 5]
+            if (localStorage.getItem('r2_bucket_name')) document.getElementById('r2BucketName').value = localStorage.getItem('r2_bucket_name');[cite: 5]
         }
 
         function getS3Client() {
-            const accountId = document.getElementById('r2AccountId').value.trim();
-            const accessKeyId = document.getElementById('r2AccessKey').value.trim();
-            const secretAccessKey = document.getElementById('r2SecretKey').value.trim();
+            const accountId = document.getElementById('r2AccountId').value.trim();[cite: 5]
+            const accessKeyId = document.getElementById('r2AccessKey').value.trim();[cite: 5]
+            const secretAccessKey = document.getElementById('r2SecretKey').value.trim();[cite: 5]
 
-            if (!accountId || !accessKeyId || !secretAccessKey) {
+            if (!accountId || !accessKeyId || !secretAccessKey) {[cite: 5]
                 return null;
             }
 
-            AWS.config.update({
-                accessKeyId: accessKeyId,
-                secretAccessKey: secretAccessKey,
-                region: 'us-east-1'
+            AWS.config.update({[cite: 5]
+                accessKeyId: accessKeyId,[cite: 5]
+                secretAccessKey: secretAccessKey,[cite: 5]
+                region: 'us-east-1'[cite: 5]
             });
 
-            return new AWS.S3({
-                endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-                signatureVersion: 'v4',
-                s3ForcePathStyle: true
+            return new AWS.S3({[cite: 5]
+                endpoint: `https://${accountId}.r2.cloudflarestorage.com`,[cite: 5]
+                signatureVersion: 'v4',[cite: 5]
+                s3ForcePathStyle: true[cite: 5]
             });
         }
 
@@ -752,7 +766,7 @@
             const s3 = getS3Client();
             if (!s3) return;
 
-            const bucketName = document.getElementById('r2BucketName').value.trim();
+            const bucketName = document.getElementById('r2BucketName').value.trim();[cite: 5]
             try {
                 const res = await s3.listObjectsV2({
                     Bucket: bucketName,
@@ -772,417 +786,431 @@
         }
 
         async function fetchMissingSizes() {
-            const s3 = getS3Client();
-            const baseUrl = document.getElementById('r2BaseUrl').value.trim().replace(/\/+$/, '');
-            const bucketName = document.getElementById('r2BucketName').value.trim();
+            const s3 = getS3Client();[cite: 5]
+            const baseUrl = document.getElementById('r2BaseUrl').value.trim().replace(/\/+$/, '');[cite: 5]
+            const bucketName = document.getElementById('r2BucketName').value.trim();[cite: 5]
 
-            const missing = songsCatalog.filter(s => !s.size || s.size <= 0);
-            if (missing.length === 0) {
-                showStatus('All songs already have file sizes!', 'emerald');
-                return;
+            const missing = songsCatalog.filter(s => !s.size || s.size <= 0);[cite: 5]
+            if (missing.length === 0) {[cite: 5]
+                showStatus('All songs already have file sizes!', 'emerald');[cite: 5]
+                return;[cite: 5]
             }
 
-            showStatus(`Fetching sizes for ${missing.length} songs...`, 'blue');
-            let updatedCount = 0;
+            showStatus(`Fetching sizes for ${missing.length} songs...`, 'blue');[cite: 5]
+            let updatedCount = 0;[cite: 5]
 
-            if (s3) {
+            if (s3) {[cite: 5]
                 try {
-                    let continuationToken = null;
-                    const r2ObjectsMap = new Map();
+                    let continuationToken = null;[cite: 5]
+                    const r2ObjectsMap = new Map();[cite: 5]
 
                     do {
-                        const res = await s3.listObjectsV2({
-                            Bucket: bucketName,
-                            ContinuationToken: continuationToken
-                        }).promise();
+                        const res = await s3.listObjectsV2({[cite: 5]
+                            Bucket: bucketName,[cite: 5]
+                            ContinuationToken: continuationToken[cite: 5]
+                        }).promise();[cite: 5]
 
-                        if (res && res.Contents) {
-                            res.Contents.forEach(obj => {
-                                r2ObjectsMap.set(obj.Key, obj.Size);
-                                r2ObjectsMap.set(decodeURIComponent(obj.Key), obj.Size);
+                        if (res && res.Contents) {[cite: 5]
+                            res.Contents.forEach(obj => {[cite: 5]
+                                r2ObjectsMap.set(obj.Key, obj.Size);[cite: 5]
+                                r2ObjectsMap.set(decodeURIComponent(obj.Key), obj.Size);[cite: 5]
                             });
                         }
-                        continuationToken = res.IsTruncated ? res.NextContinuationToken : null;
-                    } while (continuationToken);
+                        continuationToken = res.IsTruncated ? res.NextContinuationToken : null;[cite: 5]
+                    } while (continuationToken);[cite: 5]
 
-                    for (let song of missing) {
-                        const rawKey = song.url.startsWith('http') 
-                            ? song.url.split('.dev/').pop() 
-                            : song.url;
-                        const decodedKey = decodeURIComponent(rawKey);
+                    for (let song of missing) {[cite: 5]
+                        const rawKey = song.url.startsWith('http') [cite: 5]
+                            ? song.url.split('.dev/').pop() [cite: 5]
+                            : song.url;[cite: 5]
+                        const decodedKey = decodeURIComponent(rawKey);[cite: 5]
 
-                        if (r2ObjectsMap.has(rawKey)) {
-                            song.size = r2ObjectsMap.get(rawKey);
-                            updatedCount++;
-                        } else if (r2ObjectsMap.has(decodedKey)) {
-                            song.size = r2ObjectsMap.get(decodedKey);
-                            updatedCount++;
+                        if (r2ObjectsMap.has(rawKey)) {[cite: 5]
+                            song.size = r2ObjectsMap.get(rawKey);[cite: 5]
+                            updatedCount++;[cite: 5]
+                        } else if (r2ObjectsMap.has(decodedKey)) {[cite: 5]
+                            song.size = r2ObjectsMap.get(decodedKey);[cite: 5]
+                            updatedCount++;[cite: 5]
                         }
                     }
-                } catch (err) {
-                    console.warn('Batch lookup fallback:', err);
+                } catch (err) {[cite: 5]
+                    console.warn('Batch lookup fallback:', err);[cite: 5]
                 }
             }
 
-            const remaining = songsCatalog.filter(s => !s.size || s.size <= 0);
-            for (let song of remaining) {
+            const remaining = songsCatalog.filter(s => !s.size || s.size <= 0);[cite: 5]
+            for (let song of remaining) {[cite: 5]
                 try {
-                    const fullUrl = song.url.startsWith('http') 
-                        ? song.url 
-                        : `${baseUrl}/${song.url}`;
+                    const fullUrl = song.url.startsWith('http') [cite: 5]
+                        ? song.url [cite: 5]
+                        : `${baseUrl}/${song.url}`;[cite: 5]
 
-                    const res = await fetch(fullUrl, { method: 'HEAD' });
-                    const lengthHeader = res.headers.get('content-length');
-                    if (lengthHeader) {
-                        song.size = parseInt(lengthHeader, 10);
-                        updatedCount++;
+                    const res = await fetch(fullUrl, { method: 'HEAD' });[cite: 5]
+                    const lengthHeader = res.headers.get('content-length');[cite: 5]
+                    if (lengthHeader) {[cite: 5]
+                        song.size = parseInt(lengthHeader, 10);[cite: 5]
+                        updatedCount++;[cite: 5]
                     }
-                } catch (e) {
-                    console.warn(`Could not fetch size for ${song.title}:`, e);
+                } catch (e) {[cite: 5]
+                    console.warn(`Could not fetch size for ${song.title}:`, e);[cite: 5]
                 }
             }
 
-            applyAllFilters();
-            showStatus(`Retrieved sizes for ${updatedCount} songs! Click 'Publish to R2' to save.`, 'emerald');
+            applyAllFilters();[cite: 5]
+            showStatus(`Retrieved sizes for ${updatedCount} songs! Click 'Publish to R2' to save.`, 'emerald');[cite: 5]
         }
 
         async function syncCatalogFromR2() {
-            const baseUrl = document.getElementById('r2BaseUrl').value.trim();
+            const baseUrl = document.getElementById('r2BaseUrl').value.trim();[cite: 5]
             await loadBucketLiveFolders();
 
             try {
-                showStatus('Syncing songs.json from R2...', 'blue');
-                const response = await fetch(`${baseUrl}/songs.json?t=${Date.now()}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    if (Array.isArray(data)) {
-                        songsCatalog = data;
-                        applyAllFilters();
-                        updateDropdownLists();
-                        populateSingerFilterDropdown();
-                        showStatus('Successfully synced songs.json from R2!', 'emerald');
+                showStatus('Syncing songs.json from R2...', 'blue');[cite: 5]
+                const response = await fetch(`${baseUrl}/songs.json?t=${Date.now()}`);[cite: 5]
+                if (response.ok) {[cite: 5]
+                    const data = await response.json();[cite: 5]
+                    if (Array.isArray(data)) {[cite: 5]
+                        songsCatalog = data;[cite: 5]
+                        applyAllFilters();[cite: 5]
+                        updateDropdownLists();[cite: 5]
+                        populateSingerFilterDropdown();[cite: 5]
+                        showStatus('Successfully synced songs.json from R2!', 'emerald');[cite: 5]
 
-                        const hasMissingSizes = songsCatalog.some(s => !s.size || s.size <= 0);
-                        if (hasMissingSizes) {
-                            fetchMissingSizes();
+                        const hasMissingSizes = songsCatalog.some(s => !s.size || s.size <= 0);[cite: 5]
+                        if (hasMissingSizes) {[cite: 5]
+                            fetchMissingSizes();[cite: 5]
                         }
-                        return;
+                        return;[cite: 5]
                     }
                 }
-                showStatus('No remote songs.json found yet. Starting empty.', 'slate');
-            } catch (err) {
-                console.log('Could not fetch remote songs.json:', err);
-                showStatus('Offline mode / empty catalog.', 'slate');
+                showStatus('No remote songs.json found yet. Starting empty.', 'slate');[cite: 5]
+            } catch (err) {[cite: 5]
+                console.log('Could not fetch remote songs.json:', err);[cite: 5]
+                showStatus('Offline mode / empty catalog.', 'slate');[cite: 5]
             }
         }
 
         function populateSingerFilterDropdown() {
-            const select = document.getElementById('filterSingerSelect');
-            const currentVal = select.value;
+            const select = document.getElementById('filterSingerSelect');[cite: 5]
+            const currentVal = select.value;[cite: 5]
             const singers = getUniqueSingers();
 
-            select.innerHTML = '<option value="">All Singers</option>' +
-                singers.map(s => `<option value="${s.replace(/"/g, '&quot;')}">${s}</option>`).join('');
+            select.innerHTML = '<option value="">All Singers</option>' +[cite: 5]
+                singers.map(s => `<option value="${s.replace(/"/g, '&quot;')}">${s}</option>`).join('');[cite: 5]
 
-            if (singers.includes(currentVal)) {
-                select.value = currentVal;
+            if (singers.includes(currentVal)) {[cite: 5]
+                select.value = currentVal;[cite: 5]
             }
         }
 
         function applyAllFilters() {
-            const titleQuery = (document.getElementById('filterTitleInput')?.value || '').trim().toLowerCase();
-            const categoryQuery = (document.getElementById('filterCategorySelect')?.value || '').trim().toLowerCase();
-            const singerQuery = (document.getElementById('filterSingerSelect')?.value || '').trim().toLowerCase();
-            const sizeOption = document.getElementById('filterSizeSelect')?.value || '';
+            const titleQuery = (document.getElementById('filterTitleInput')?.value || '').replace(/^\s+/, '').trim().toLowerCase();
+            const categoryQuery = (document.getElementById('filterCategorySelect')?.value || '').trim().toLowerCase();[cite: 5]
+            const singerQuery = (document.getElementById('filterSingerSelect')?.value || '').replace(/^\s+/, '').trim().toLowerCase();
+            const sizeOption = document.getElementById('filterSizeSelect')?.value || '';[cite: 5]
 
-            filteredCatalog = songsCatalog.filter(song => {
-                if (titleQuery && !song.title.toLowerCase().includes(titleQuery)) {
-                    return false;
+            filteredCatalog = songsCatalog.filter(song => {[cite: 5]
+                if (titleQuery && !song.title.toLowerCase().includes(titleQuery)) {[cite: 5]
+                    return false;[cite: 5]
                 }
 
-                if (categoryQuery && (!song.category || !song.category.toLowerCase().includes(categoryQuery))) {
-                    return false;
+                if (categoryQuery && (!song.category || !song.category.toLowerCase().includes(categoryQuery))) {[cite: 5]
+                    return false;[cite: 5]
                 }
 
-                if (singerQuery) {
-                    const sName = normalizeKhmer(song.singer || '').toLowerCase();
-                    const sUrl = normalizeKhmer(decodeURIComponent(song.url || '')).toLowerCase();
-                    if (!sName.includes(singerQuery) && !sUrl.includes(singerQuery)) {
-                        return false;
+                if (singerQuery) {[cite: 5]
+                    const sName = normalizeKhmer(song.singer || '').toLowerCase();[cite: 5]
+                    const sUrl = normalizeKhmer(decodeURIComponent(song.url || '')).toLowerCase();[cite: 5]
+                    if (!sName.includes(singerQuery) && !sUrl.includes(singerQuery)) {[cite: 5]
+                        return false;[cite: 5]
                     }
                 }
 
-                const bytes = Number(song.size) || 0;
-                if (sizeOption === 'small' && bytes >= 4 * 1024 * 1024) return false;
-                if (sizeOption === 'medium' && (bytes < 4 * 1024 * 1024 || bytes > 8 * 1024 * 1024)) return false;
-                if (sizeOption === 'large' && bytes <= 8 * 1024 * 1024) return false;
+                const bytes = Number(song.size) || 0;[cite: 5]
+                if (sizeOption === 'small' && bytes >= 4 * 1024 * 1024) return false;[cite: 5]
+                if (sizeOption === 'medium' && (bytes < 4 * 1024 * 1024 || bytes > 8 * 1024 * 1024)) return false;[cite: 5]
+                if (sizeOption === 'large' && bytes <= 8 * 1024 * 1024) return false;[cite: 5]
 
-                return true;
+                return true;[cite: 5]
             });
 
-            if (sizeOption === 'sort_desc') {
-                filteredCatalog.sort((a, b) => (Number(b.size) || 0) - (Number(a.size) || 0));
-            } else if (sizeOption === 'sort_asc') {
-                filteredCatalog.sort((a, b) => (Number(a.size) || 0) - (Number(b.size) || 0));
+            if (sizeOption === 'sort_desc') {[cite: 5]
+                filteredCatalog.sort((a, b) => (Number(b.size) || 0) - (Number(a.size) || 0));[cite: 5]
+            } else if (sizeOption === 'sort_asc') {[cite: 5]
+                filteredCatalog.sort((a, b) => (Number(a.size) || 0) - (Number(b.size) || 0));[cite: 5]
             }
 
-            currentPage = 1;
-            renderTable();
+            currentPage = 1;[cite: 5]
+            renderTable();[cite: 5]
         }
 
         function resetAllFilters() {
-            document.getElementById('filterTitleInput').value = '';
-            document.getElementById('filterCategorySelect').value = '';
-            document.getElementById('filterSingerSelect').value = '';
-            document.getElementById('filterSizeSelect').value = '';
-            applyAllFilters();
+            document.getElementById('filterTitleInput').value = '';[cite: 5]
+            document.getElementById('filterCategorySelect').value = '';[cite: 5]
+            document.getElementById('filterSingerSelect').value = '';[cite: 5]
+            document.getElementById('filterSizeSelect').value = '';[cite: 5]
+            applyAllFilters();[cite: 5]
         }
 
         function changePage(direction) {
-            const maxPage = Math.ceil(filteredCatalog.length / pageSize) || 1;
-            currentPage = Math.max(1, Math.min(currentPage + direction, maxPage));
-            renderTable();
+            const maxPage = Math.ceil(filteredCatalog.length / pageSize) || 1;[cite: 5]
+            currentPage = Math.max(1, Math.min(currentPage + direction, maxPage));[cite: 5]
+            renderTable();[cite: 5]
         }
 
         function updateDropdownLists() {
-            renderSingerDropdown('');
-            renderFolderDropdown('');
+            renderSingerDropdown('');[cite: 5]
+            renderFolderDropdown('');[cite: 5]
         }
 
         function showSingerDropdown() {
-            const currentText = document.getElementById('songSinger').value;
-            renderSingerDropdown(currentText);
+            const currentText = document.getElementById('songSinger').value;[cite: 5]
+            renderSingerDropdown(currentText);[cite: 5]
         }
 
         function toggleSingerDropdown() {
-            const menu = document.getElementById('singerDropdownMenu');
-            if (menu.style.display === 'block') {
-                menu.style.display = 'none';
+            const menu = document.getElementById('singerDropdownMenu');[cite: 5]
+            if (menu.style.display === 'block') {[cite: 5]
+                menu.style.display = 'none';[cite: 5]
             } else {
-                renderSingerDropdown(document.getElementById('songSinger').value);
+                renderSingerDropdown(document.getElementById('songSinger').value);[cite: 5]
             }
         }
 
         function renderSingerDropdown(filter) {
-            const menu = document.getElementById('singerDropdownMenu');
-            const cleanFilter = normalizeKhmer(filter).toLowerCase();
+            const menu = document.getElementById('singerDropdownMenu');[cite: 5]
+            const cleanFilter = normalizeKhmer(filter).toLowerCase();[cite: 5]
             const singers = getUniqueSingers();
 
-            const filtered = cleanFilter
-                ? singers.filter(s => s.toLowerCase().includes(cleanFilter))
-                : singers;
+            const filtered = cleanFilter[cite: 5]
+                ? singers.filter(s => s.toLowerCase().includes(cleanFilter))[cite: 5]
+                : singers;[cite: 5]
 
-            if (filtered.length === 0) {
-                menu.innerHTML = `<div class="p-3 text-xs text-slate-400 text-center">គ្មានឈ្មោះត្រូវគ្នាទេ (វាយដើម្បីបង្កើតថ្មី)</div>`;
+            if (filtered.length === 0) {[cite: 5]
+                menu.innerHTML = `<div class="p-3 text-xs text-slate-400 text-center">គ្មានឈ្មោះត្រូវគ្នាទេ (វាយដើម្បីបង្កើតថ្មី)</div>`;[cite: 5]
             } else {
                 menu.innerHTML = filtered.map(s => `
                     <div class="custom-dropdown-item" onclick="selectSinger('${s.replace(/'/g, "\\'")}')">
                         <i class="fa-solid fa-microphone-lines text-brand-500 text-xs"></i> <span>${s}</span>
                     </div>
-                `).join('');
+                `).join('');[cite: 5]
             }
-            menu.style.display = 'block';
+            menu.style.display = 'block';[cite: 5]
         }
 
         function showFolderDropdown() {
-            const currentText = document.getElementById('songFolder').value;
-            renderFolderDropdown(currentText);
+            const currentText = document.getElementById('songFolder').value;[cite: 5]
+            renderFolderDropdown(currentText);[cite: 5]
         }
 
         function toggleFolderDropdown() {
-            const menu = document.getElementById('folderDropdownMenu');
-            if (menu.style.display === 'block') {
-                menu.style.display = 'none';
+            const menu = document.getElementById('folderDropdownMenu');[cite: 5]
+            if (menu.style.display === 'block') {[cite: 5]
+                menu.style.display = 'none';[cite: 5]
             } else {
-                renderFolderDropdown(document.getElementById('songFolder').value);
+                renderFolderDropdown(document.getElementById('songFolder').value);[cite: 5]
             }
         }
 
         function renderFolderDropdown(filter) {
-            const menu = document.getElementById('folderDropdownMenu');
-            const cleanFilter = normalizeKhmer(filter).toLowerCase();
+            const menu = document.getElementById('folderDropdownMenu');[cite: 5]
+            const cleanFilter = normalizeKhmer(filter).toLowerCase();[cite: 5]
             const folders = getUniqueFolders();
 
-            const filtered = cleanFilter
-                ? folders.filter(f => f.toLowerCase().includes(cleanFilter))
-                : folders;
+            const filtered = cleanFilter[cite: 5]
+                ? folders.filter(f => f.toLowerCase().includes(cleanFilter))[cite: 5]
+                : folders;[cite: 5]
 
-            if (filtered.length === 0) {
-                menu.innerHTML = `<div class="p-3 text-xs text-slate-400 text-center">គ្មាន Folder ត្រូវគ្នាទេ (វាយដើម្បីបង្កើតថ្មី)</div>`;
+            if (filtered.length === 0) {[cite: 5]
+                menu.innerHTML = `<div class="p-3 text-xs text-slate-400 text-center">គ្មាន Folder ត្រូវគ្នាទេ (វាយដើម្បីបង្កើតថ្មី)</div>`;[cite: 5]
             } else {
                 menu.innerHTML = filtered.map(f => `
                     <div class="custom-dropdown-item" onclick="selectFolder('${f.replace(/'/g, "\\'")}')">
                         <i class="fa-solid fa-folder text-brand-500 text-xs"></i> <span>${f}</span>
                     </div>
-                `).join('');
+                `).join('');[cite: 5]
             }
-            menu.style.display = 'block';
+            menu.style.display = 'block';[cite: 5]
         }
 
         async function handleUploadSong(e) {
-            e.preventDefault();
+            e.preventDefault();[cite: 5]
 
-            const title = cleanString(document.getElementById('songTitle').value);
-            const singer = cleanString(document.getElementById('songSinger').value);
-            const category = document.getElementById('songCategory').value;
+            const title = cleanString(document.getElementById('songTitle').value);[cite: 5]
+            const singer = cleanString(document.getElementById('songSinger').value);[cite: 5]
+            const category = document.getElementById('songCategory').value;[cite: 5]
             
-            const rawFolder = document.getElementById('songFolder').value || singer;
+            const rawFolder = document.getElementById('songFolder').value || singer;[cite: 5]
             const folder = findExistingFolderMatch(rawFolder);
             
-            let image = document.getElementById('songImage').value.trim();
-            const fileInput = document.getElementById('audioFile');
-            const file = fileInput.files[0];
+            let image = document.getElementById('songImage').value.replace(/^\s+/, '').trim();
+            const fileInput = document.getElementById('audioFile');[cite: 5]
+            const file = fileInput.files[0];[cite: 5]
 
-            if (!file) {
-                alert('Please select an MP3 file to upload.');
-                return;
+            if (!file) {[cite: 5]
+                alert('Please select an MP3 file to upload.');[cite: 5]
+                return;[cite: 5]
             }
 
             const titleExists = songsCatalog.some(song => 
-                song.title.toLowerCase() === title.toLowerCase()
+                song.title.toLowerCase() === title.toLowerCase()[cite: 5]
             );
 
-            if (titleExists) {
-                alert(`⚠️ Upload Blocked: The song title "${title}" already exists in your catalog!`);
-                return;
+            if (titleExists) {[cite: 5]
+                alert(`⚠️ Upload Blocked: The song title "${title}" already exists in your catalog!`);[cite: 5]
+                return;[cite: 5]
             }
 
-            const s3 = getS3Client();
+            const s3 = getS3Client();[cite: 5]
             if (!s3) {
-                alert('Please save your Cloudflare R2 Credentials first.');
+                alert('Please configure your Cloudflare R2 credentials first.');
                 return;
             }
 
-            const bucketName = document.getElementById('r2BucketName').value.trim();
-            const baseUrl = document.getElementById('r2BaseUrl').value.trim();
+            const bucketName = document.getElementById('r2BucketName').value.trim();[cite: 5]
+            const baseUrl = document.getElementById('r2BaseUrl').value.trim();[cite: 5]
 
-            const uploadBtn = document.getElementById('uploadBtn');
+            const uploadBtn = document.getElementById('uploadBtn');[cite: 5]
+            uploadBtn.disabled = true;[cite: 5]
+            uploadBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Uploading to R2...`;[cite: 5]
+
             const progressContainer = document.getElementById('uploadProgressContainer');
             const progressBar = document.getElementById('uploadProgressBar');
             const progressPercent = document.getElementById('uploadProgressPercent');
-            const progressTitle = document.getElementById('uploadProgressTitle');
             const bytesText = document.getElementById('uploadBytesText');
-            const speedEtaText = document.getElementById('uploadSpeedEtaText');
-
-            uploadBtn.disabled = true;
-            uploadBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Uploading...`;
+            const timeSpeedText = document.getElementById('uploadTimeSpeedText');
 
             progressContainer.classList.remove('hidden');
             progressBar.style.width = '0%';
             progressPercent.textContent = '0%';
-            progressTitle.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Uploading MP3 to R2...`;
             bytesText.textContent = `0 MB / ${formatBytes(file.size)}`;
-            speedEtaText.textContent = `Calculating speed & ETA...`;
+            timeSpeedText.textContent = 'Starting...';
+
+            const startTime = Date.now();
 
             try {
-                if (uploadedImageFile) {
-                    progressTitle.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Uploading Singer Artwork...`;
+                if (uploadedImageFile) {[cite: 5]
                     const imgKey = `singers/${folder}/profile.jpg`;
-                    await s3.putObject({
-                        Bucket: bucketName,
-                        Key: imgKey,
-                        Body: uploadedImageFile,
-                        ContentType: uploadedImageFile.type || 'image/jpeg'
-                    }).promise();
+                    await s3.putObject({[cite: 5]
+                        Bucket: bucketName,[cite: 5]
+                        Key: imgKey,[cite: 5]
+                        Body: uploadedImageFile,[cite: 5]
+                        ContentType: uploadedImageFile.type || 'image/jpeg'[cite: 5]
+                    }).promise();[cite: 5]
                     image = `${baseUrl}/singers/${encodeURIComponent(folder)}/profile.jpg`;
                 }
 
-                progressTitle.innerHTML = `<i class="fa-solid fa-cloud-arrow-up text-brand-600"></i> Uploading Audio File...`;
-                const filename = file.name;
+                const filename = file.name;[cite: 5]
                 const r2Path = `${folder}/${filename}`;
 
-                const startTime = Date.now();
-                const totalBytes = file.size;
-
-                const uploadManager = s3.upload({
+                const uploadManaged = s3.upload({
                     Bucket: bucketName,
                     Key: r2Path,
                     Body: file,
                     ContentType: file.type || 'audio/mpeg'
                 });
 
-                uploadManager.on('httpUploadProgress', (progress) => {
+                uploadManaged.on('httpUploadProgress', (progress) => {
                     const loaded = progress.loaded;
-                    const total = progress.total || totalBytes;
+                    const total = progress.total || file.size;
                     const percent = Math.min(100, Math.round((loaded / total) * 100));
 
                     progressBar.style.width = `${percent}%`;
                     progressPercent.textContent = `${percent}%`;
                     bytesText.textContent = `${formatBytes(loaded)} / ${formatBytes(total)}`;
 
-                    const elapsedSeconds = (Date.now() - startTime) / 1000;
-                    if (elapsedSeconds > 0.3) {
-                        const bytesPerSecond = loaded / elapsedSeconds;
+                    const elapsedSec = (Date.now() - startTime) / 1000;
+                    if (elapsedSec > 0.2) {
+                        const speedBps = loaded / elapsedSec;
                         const remainingBytes = Math.max(0, total - loaded);
-                        const remainingSeconds = Math.round(remainingBytes / bytesPerSecond);
-
-                        const speedStr = `${formatBytes(bytesPerSecond)}/s`;
-                        const etaStr = remainingSeconds > 60
-                            ? `${Math.floor(remainingSeconds / 60)}m ${remainingSeconds % 60}s`
-                            : `${remainingSeconds}s`;
-
-                        speedEtaText.textContent = `${speedStr} • ETA: ${percent >= 100 ? 'Finishing...' : etaStr}`;
+                        const remainingSec = Math.round(remainingBytes / speedBps);
+                        timeSpeedText.textContent = `${formatBytes(speedBps)}/s • ETA: ${remainingSec}s`;
                     }
                 });
 
-                await uploadManager.promise();
+                await uploadManaged.promise();
 
-                const newSong = {
-                    title,
-                    singer,
-                    category,
-                    image: image && !image.startsWith('[Selected') ? image : `${baseUrl}/singers/${encodeURIComponent(folder)}/profile.jpg`,
+                const newSong = {[cite: 5]
+                    title,[cite: 5]
+                    singer,[cite: 5]
+                    category,[cite: 5]
+                    image: image && !image.startsWith('[Selected') ? image : `${baseUrl}/singers/${encodeURIComponent(folder)}/profile.jpg`,[cite: 5]
                     url: r2Path,
-                    size: file.size
+                    size: file.size[cite: 5]
                 };
 
-                songsCatalog.unshift(newSong);
+                songsCatalog.unshift(newSong);[cite: 5]
                 if (!r2BucketFolders.includes(folder)) {
                     r2BucketFolders.push(folder);
                 }
 
-                populateSingerFilterDropdown();
-                applyAllFilters();
+                populateSingerFilterDropdown();[cite: 5]
+                applyAllFilters();[cite: 5]
 
-                fileInput.value = '';
-                document.getElementById('fileLabelText').textContent = 'Click to browse or drop MP3 file here';
-                document.getElementById('fileLabelText').className = "text-xs text-slate-700 font-semibold mb-0.5";
-                document.getElementById('songTitle').value = '';
-                document.getElementById('songSinger').value = '';
-                document.getElementById('songImage').value = '';
-                uploadedImageFile = null;
+                fileInput.value = '';[cite: 5]
+                document.getElementById('fileLabelText').textContent = 'Click to browse or drop MP3 file here';[cite: 5]
+                document.getElementById('fileLabelText').className = "text-xs text-slate-700 font-semibold mb-0.5";[cite: 5]
+                document.getElementById('songTitle').value = '';[cite: 5]
+                document.getElementById('songSinger').value = '';[cite: 5]
+                document.getElementById('songImage').value = '';[cite: 5]
+                uploadedImageFile = null;[cite: 5]
 
-                progressBar.style.width = '100%';
-                progressPercent.textContent = '100%';
-                progressTitle.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i> Upload Complete!`;
-                speedEtaText.textContent = `Finished successfully`;
-
-                showStatus('MP3 uploaded successfully into existing folder! Click "Publish to R2" to save live catalog.', 'emerald');
-
+                showStatus('MP3 uploaded successfully into folder! Click "Publish to R2" to save live catalog.', 'emerald');
+            } catch (err) {[cite: 5]
+                alert('R2 Upload Failed: ' + err.message);[cite: 5]
+                showStatus('Upload failed!', 'rose');[cite: 5]
+            } finally {
+                uploadBtn.disabled = false;[cite: 5]
+                uploadBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Upload MP3 & Add to Catalog`;[cite: 5]
                 setTimeout(() => {
                     progressContainer.classList.add('hidden');
-                }, 3500);
-
-            } catch (err) {
-                alert('R2 Upload Failed: ' + err.message);
-                showStatus('Upload failed!', 'rose');
-                progressContainer.classList.add('hidden');
-            } finally {
-                uploadBtn.disabled = false;
-                uploadBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Upload MP3 & Add to Catalog`;
+                }, 2500);
             }
         }
 
-        /* --- Song Edit Modal Functions --- */
+        async function publishCatalogToR2() {
+            const s3 = getS3Client();[cite: 5]
+            if (!s3) return;[cite: 5]
+
+            const bucketName = document.getElementById('r2BucketName').value.trim();[cite: 5]
+            const publishBtn = document.getElementById('publishBtn');[cite: 5]
+            publishBtn.disabled = true;[cite: 5]
+            publishBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Publishing...`;[cite: 5]
+
+            const jsonString = JSON.stringify(songsCatalog, null, 2);[cite: 5]
+
+            s3.upload({[cite: 5]
+                Bucket: bucketName,[cite: 5]
+                Key: 'songs.json',[cite: 5]
+                Body: jsonString,[cite: 5]
+                ContentType: 'application/json'[cite: 5]
+            }, function (err, data) {[cite: 5]
+                publishBtn.disabled = false;[cite: 5]
+                publishBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Publish to R2`;[cite: 5]
+
+                if (err) {[cite: 5]
+                    alert('Failed to publish songs.json: ' + err.message);[cite: 5]
+                    showStatus('Publish failed!', 'rose');[cite: 5]
+                    return;[cite: 5]
+                }
+
+                showStatus('songs.json published to R2 successfully!', 'emerald');[cite: 5]
+                alert('Success! songs.json published to Cloudflare R2.');[cite: 5]
+            });
+        }
+
         function openEditModal(indexInFiltered) {
             const song = filteredCatalog[indexInFiltered];
             if (!song) return;
 
-            document.getElementById('editSongIndex').value = indexInFiltered;
-            document.getElementById('editSongTitle').value = song.title || '';
-            document.getElementById('editSongSinger').value = song.singer || '';
-            document.getElementById('editSongCategory').value = song.category || 'ចម្រៀងសម័យទំនើប';
-            document.getElementById('editSongPath').value = decodeURIComponent(song.url || '');
+            const originalIndex = songsCatalog.indexOf(song);
+            if (originalIndex === -1) return;
+
+            document.getElementById('editSongIndex').value = originalIndex;
+            document.getElementById('editTitleInput').value = song.title || '';
+            document.getElementById('editSingerInput').value = song.singer || '';
+            document.getElementById('editCategorySelect').value = song.category || 'ចម្រៀងសម័យទំនើប';
+            document.getElementById('editUrlInput').value = decodeURIComponent(song.url || '');
 
             document.getElementById('editSongModal').classList.remove('hidden');
         }
@@ -1193,199 +1221,163 @@
 
         function saveEditedSong(e) {
             e.preventDefault();
-            const indexInFiltered = parseInt(document.getElementById('editSongIndex').value, 10);
-            const song = filteredCatalog[indexInFiltered];
-            if (!song) return;
 
-            const newTitle = cleanString(document.getElementById('editSongTitle').value);
-            const newSinger = cleanString(document.getElementById('editSongSinger').value);
-            const newCategory = document.getElementById('editSongCategory').value;
+            const idx = parseInt(document.getElementById('editSongIndex').value, 10);
+            if (isNaN(idx) || idx < 0 || idx >= songsCatalog.length) return;
 
-            // Check if title changed and conflicts with another existing song
-            const rawIdx = songsCatalog.indexOf(song);
-            const titleDuplicate = songsCatalog.some((s, idx) => 
-                idx !== rawIdx && s.title.toLowerCase() === newTitle.toLowerCase()
-            );
+            const newTitle = cleanString(document.getElementById('editTitleInput').value);
+            const newSinger = cleanString(document.getElementById('editSingerInput').value);
+            const newCategory = document.getElementById('editCategorySelect').value;
 
-            if (titleDuplicate) {
-                alert(`⚠️ Another song with the title "${newTitle}" already exists!`);
+            if (!newTitle) {
+                alert('Please enter a valid song title.');
                 return;
             }
 
-            // Update song properties
-            song.title = newTitle;
-            song.singer = newSinger;
-            song.category = newCategory;
+            const isDuplicate = songsCatalog.some((s, i) => 
+                i !== idx && s.title.toLowerCase() === newTitle.toLowerCase()
+            );
 
-            if (rawIdx !== -1) {
-                songsCatalog[rawIdx].title = newTitle;
-                songsCatalog[rawIdx].singer = newSinger;
-                songsCatalog[rawIdx].category = newCategory;
+            if (isDuplicate) {
+                alert(`The song title "${newTitle}" is already used by another track!`);
+                return;
             }
 
+            songsCatalog[idx].title = newTitle;
+            songsCatalog[idx].singer = newSinger;
+            songsCatalog[idx].category = newCategory;
+
+            closeEditModal();
             populateSingerFilterDropdown();
             applyAllFilters();
-            closeEditModal();
 
-            showStatus(`Updated "${newTitle}". Click "Publish to R2" to sync changes!`, 'emerald');
-        }
-
-        async function publishCatalogToR2() {
-            const s3 = getS3Client();
-            if (!s3) return;
-
-            const bucketName = document.getElementById('r2BucketName').value.trim();
-            const publishBtn = document.getElementById('publishBtn');
-            publishBtn.disabled = true;
-            publishBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Publishing...`;
-
-            const jsonString = JSON.stringify(songsCatalog, null, 2);
-
-            s3.upload({
-                Bucket: bucketName,
-                Key: 'songs.json',
-                Body: jsonString,
-                ContentType: 'application/json'
-            }, function (err, data) {
-                publishBtn.disabled = false;
-                publishBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Publish to R2`;
-
-                if (err) {
-                    alert('Failed to publish songs.json: ' + err.message);
-                    showStatus('Publish failed!', 'rose');
-                    return;
-                }
-
-                showStatus('songs.json published to R2 successfully!', 'emerald');
-                alert('Success! songs.json published to Cloudflare R2.');
-            });
+            showStatus('Song metadata updated! Click "Publish to R2" to save live catalog.', 'emerald');
         }
 
         async function deleteSong(indexInFiltered) {
-            const song = filteredCatalog[indexInFiltered];
-            if (!song) return;
+            const song = filteredCatalog[indexInFiltered];[cite: 5]
+            if (!song) return;[cite: 5]
 
-            if (!confirm(`Are you sure you want to delete "${song.title}" from R2?`)) {
-                return;
+            if (!confirm(`Are you sure you want to delete "${song.title}" from R2?`)) {[cite: 5]
+                return;[cite: 5]
             }
 
-            const s3 = getS3Client();
-            if (!s3) return;
+            const s3 = getS3Client();[cite: 5]
+            if (!s3) return;[cite: 5]
 
-            const bucketName = document.getElementById('r2BucketName').value.trim();
-            const r2Path = song.url.startsWith('http')
-                ? decodeURIComponent(song.url.split('.dev/').pop())
-                : decodeURIComponent(song.url);
+            const bucketName = document.getElementById('r2BucketName').value.trim();[cite: 5]
+            const r2Path = song.url.startsWith('http')[cite: 5]
+                ? decodeURIComponent(song.url.split('.dev/').pop())[cite: 5]
+                : decodeURIComponent(song.url);[cite: 5]
 
-            showStatus('Deleting MP3 from R2...', 'blue');
+            showStatus('Deleting MP3 from R2...', 'blue');[cite: 5]
 
-            s3.deleteObject({
-                Bucket: bucketName,
-                Key: r2Path
-            }, async function (err, data) {
-                if (err) {
-                    alert('Failed to delete file from R2: ' + err.message);
-                    showStatus('R2 delete failed', 'rose');
-                    return;
+            s3.deleteObject({[cite: 5]
+                Bucket: bucketName,[cite: 5]
+                Key: r2Path[cite: 5]
+            }, async function (err, data) {[cite: 5]
+                if (err) {[cite: 5]
+                    alert('Failed to delete file from R2: ' + err.message);[cite: 5]
+                    showStatus('R2 delete failed', 'rose');[cite: 5]
+                    return;[cite: 5]
                 }
 
-                const rawIdx = songsCatalog.indexOf(song);
-                if (rawIdx !== -1) songsCatalog.splice(rawIdx, 1);
+                const rawIdx = songsCatalog.indexOf(song);[cite: 5]
+                if (rawIdx !== -1) songsCatalog.splice(rawIdx, 1);[cite: 5]
                 
-                populateSingerFilterDropdown();
-                applyAllFilters();
+                populateSingerFilterDropdown();[cite: 5]
+                applyAllFilters();[cite: 5]
 
-                const jsonString = JSON.stringify(songsCatalog, null, 2);
-                s3.putObject({
-                    Bucket: bucketName,
-                    Key: 'songs.json',
-                    Body: jsonString,
-                    ContentType: 'application/json'
-                }, function (pubErr, pubData) {
-                    if (pubErr) {
-                        showStatus('Catalog sync failed', 'rose');
-                        return;
+                const jsonString = JSON.stringify(songsCatalog, null, 2);[cite: 5]
+                s3.putObject({[cite: 5]
+                    Bucket: bucketName,[cite: 5]
+                    Key: 'songs.json',[cite: 5]
+                    Body: jsonString,[cite: 5]
+                    ContentType: 'application/json'[cite: 5]
+                }, function (pubErr, pubData) {[cite: 5]
+                    if (pubErr) {[cite: 5]
+                        showStatus('Catalog sync failed', 'rose');[cite: 5]
+                        return;[cite: 5]
                     }
-                    showStatus('Song deleted and catalog updated successfully!', 'emerald');
+                    showStatus('Song deleted and catalog updated successfully!', 'emerald');[cite: 5]
                 });
             });
         }
 
         function clearAllSongs() {
-            if (confirm('Are you sure you want to clear all songs from the catalog?')) {
-                songsCatalog = [];
-                filteredCatalog = [];
-                currentPage = 1;
-                updateDropdownLists();
-                populateSingerFilterDropdown();
-                renderTable();
+            if (confirm('Are you sure you want to clear all songs from the catalog?')) {[cite: 5]
+                songsCatalog = [];[cite: 5]
+                filteredCatalog = [];[cite: 5]
+                currentPage = 1;[cite: 5]
+                updateDropdownLists();[cite: 5]
+                populateSingerFilterDropdown();[cite: 5]
+                renderTable();[cite: 5]
             }
         }
 
         function renderTable() {
-            const tbody = document.getElementById('songsTableBody');
-            const badge = document.getElementById('songCountBadge');
-            const jsonPreview = document.getElementById('jsonPreview');
-            const pageInfoText = document.getElementById('pageInfoText');
-            const pageBadge = document.getElementById('pageBadge');
-            const prevBtn = document.getElementById('prevPageBtn');
-            const nextBtn = document.getElementById('nextPageBtn');
+            const tbody = document.getElementById('songsTableBody');[cite: 5]
+            const badge = document.getElementById('songCountBadge');[cite: 5]
+            const jsonPreview = document.getElementById('jsonPreview');[cite: 5]
+            const pageInfoText = document.getElementById('pageInfoText');[cite: 5]
+            const pageBadge = document.getElementById('pageBadge');[cite: 5]
+            const prevBtn = document.getElementById('prevPageBtn');[cite: 5]
+            const nextBtn = document.getElementById('nextPageBtn');[cite: 5]
 
-            badge.textContent = songsCatalog.length;
-            jsonPreview.textContent = JSON.stringify(songsCatalog, null, 2);
+            badge.textContent = songsCatalog.length;[cite: 5]
+            jsonPreview.textContent = JSON.stringify(songsCatalog, null, 2);[cite: 5]
 
-            const total = filteredCatalog.length;
-            const maxPage = Math.ceil(total / pageSize) || 1;
-            currentPage = Math.max(1, Math.min(currentPage, maxPage));
+            const total = filteredCatalog.length;[cite: 5]
+            const maxPage = Math.ceil(total / pageSize) || 1;[cite: 5]
+            currentPage = Math.max(1, Math.min(currentPage, maxPage));[cite: 5]
 
-            const startIdx = (currentPage - 1) * pageSize;
-            const endIdx = Math.min(startIdx + pageSize, total);
-            const pageItems = filteredCatalog.slice(startIdx, endIdx);
+            const startIdx = (currentPage - 1) * pageSize;[cite: 5]
+            const endIdx = Math.min(startIdx + pageSize, total);[cite: 5]
+            const pageItems = filteredCatalog.slice(startIdx, endIdx);[cite: 5]
 
-            pageInfoText.textContent = total === 0
-                ? 'Showing 0 of 0'
-                : `Showing ${startIdx + 1}–${endIdx} of ${total}`;
-            pageBadge.textContent = `${currentPage} / ${maxPage}`;
+            pageInfoText.textContent = total === 0[cite: 5]
+                ? 'Showing 0 of 0'[cite: 5]
+                : `Showing ${startIdx + 1}–${endIdx} of ${total}`;[cite: 5]
+            pageBadge.textContent = `${currentPage} / ${maxPage}`;[cite: 5]
 
-            prevBtn.disabled = currentPage <= 1;
-            nextBtn.disabled = currentPage >= maxPage;
+            prevBtn.disabled = currentPage <= 1;[cite: 5]
+            nextBtn.disabled = currentPage >= maxPage;[cite: 5]
 
-            if (pageItems.length === 0) {
+            if (pageItems.length === 0) {[cite: 5]
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="5" class="px-4 py-10 text-center text-slate-400 text-xs">
                             ${songsCatalog.length === 0 ? 'No songs in catalog yet. Upload an MP3 and publish to R2.' : 'No songs match the current filter criteria.'}
                         </td>
                     </tr>
-                `;
-                return;
+                `;[cite: 5]
+                return;[cite: 5]
             }
 
-            tbody.innerHTML = pageItems.map((song, i) => {
-                const actualIndex = startIdx + i;
-                const displaySize = song.size ? formatBytes(song.size) : '--';
-                const decodedPath = decodeURIComponent(song.url);
+            tbody.innerHTML = pageItems.map((song, i) => {[cite: 5]
+                const actualIndex = startIdx + i;[cite: 5]
+                const displaySize = song.size ? formatBytes(song.size) : '--';[cite: 5]
                 return `
                 <tr class="hover:bg-slate-100/80 transition">
                     <td class="px-4 py-3 flex items-center gap-3">
-                        <img loading="lazy" src="${song.image}" onerror="this.src='https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500'" class="w-9 h-9 rounded-lg object-cover bg-slate-200 shrink-0" />
+                        <img loading="lazy" src="${song.image}" onerror="this.src='https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500'" class="w-9 h-9 rounded-lg object-cover bg-slate-200" />
                         <div>
                             <div class="font-semibold text-slate-900 text-xs">${song.title}</div>
                             <div class="text-[11px] text-slate-500">${song.singer}</div>
                         </div>
                     </td>
                     <td class="px-4 py-3">
-                        <span class="px-2 py-0.5 text-[10px] font-medium bg-brand-50 text-brand-700 rounded-md border border-brand-200 whitespace-nowrap">${song.category}</span>
+                        <span class="px-2 py-0.5 text-[10px] font-medium bg-brand-50 text-brand-700 rounded-md border border-brand-200">${song.category}</span>
                     </td>
-                    <td class="px-4 py-3 text-xs font-mono text-slate-500 whitespace-nowrap">
+                    <td class="px-4 py-3 text-xs font-mono text-slate-500">
                         ${displaySize}
                     </td>
-                    <td class="px-4 py-3 font-mono text-[11px] text-slate-600 max-w-[180px] truncate" title="${decodedPath}">
-                        ${decodedPath}
+                    <td class="px-4 py-3 font-mono text-[11px] text-slate-600 max-w-[180px] truncate" title="${decodeURIComponent(song.url)}">
+                        ${decodeURIComponent(song.url)}
                     </td>
-                    <td class="px-4 py-3 text-right whitespace-nowrap">
+                    <td class="px-4 py-3 text-right">
                         <div class="flex items-center justify-end gap-1.5">
-                            <button onclick="openEditModal(${actualIndex})" class="p-1.5 bg-brand-50 hover:bg-brand-100 text-brand-600 rounded-lg transition" title="Edit Metadata">
+                            <button onclick="openEditModal(${actualIndex})" class="p-1.5 bg-brand-50 hover:bg-brand-100 text-brand-600 rounded-lg transition" title="Edit Details">
                                 <i class="fa-solid fa-pen-to-square text-xs"></i>
                             </button>
                             <button onclick="deleteSong(${actualIndex})" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition" title="Delete Song">
@@ -1394,13 +1386,13 @@
                         </div>
                     </td>
                 </tr>
-            `}).join('');
+            `}).join('');[cite: 5]
         }
 
         function showStatus(msg, color) {
-            const el = document.getElementById('statusMessage');
-            el.textContent = msg;
-            el.className = `text-xs font-medium text-${color}-600`;
+            const el = document.getElementById('statusMessage');[cite: 5]
+            el.textContent = msg;[cite: 5]
+            el.className = `text-xs font-medium text-${color}-600`;[cite: 5]
         }
     </script>
 </body>
