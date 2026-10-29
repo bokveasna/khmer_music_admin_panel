@@ -34,27 +34,11 @@
         }
     </script>
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
         .custom-dropdown-menu {
             display: none;
@@ -94,40 +78,44 @@
 
 <body class="bg-slate-100 text-slate-800 h-full flex flex-col antialiased selection:bg-brand-500 selection:text-white">
 
-    <header
-        class="bg-white border-b border-slate-200 sticky top-0 z-50 px-6 py-4 flex items-center justify-between shadow-sm">
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 px-6 py-3.5 flex flex-wrap items-center justify-between gap-4 shadow-sm">
         <div class="flex items-center space-x-3">
-            <div
-                class="bg-brand-600 text-white p-2.5 rounded-xl shadow-lg shadow-brand-600/20 flex items-center justify-center">
+            <div class="bg-brand-600 text-white p-2.5 rounded-xl shadow-lg shadow-brand-600/20 flex items-center justify-center">
                 <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
             </div>
             <div>
                 <h1 class="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-                    ចម្រៀងខ្មែរ R2 Direct Admin <span
-                        class="text-xs px-2 py-0.5 rounded-full bg-brand-100 text-brand-700 border border-brand-200 font-medium">Cloudflare
-                        Manager</span>
+                    ចម្រៀងខ្មែរ R2 Direct Admin <span class="text-xs px-2 py-0.5 rounded-full bg-brand-100 text-brand-700 border border-brand-200 font-medium">Cloudflare Manager</span>
                 </h1>
-                <p class="text-xs text-slate-500">Upload MP3s into artist folders & publish <code
-                        class="text-brand-600 font-mono font-semibold">songs.json</code> to Cloudflare R2</p>
+                <p class="text-xs text-slate-500">Manage MP3s, artist photos & publish <code class="text-brand-600 font-mono font-semibold">songs.json</code></p>
             </div>
         </div>
-        <div class="flex items-center space-x-2.5">
-            <button onclick="fetchMissingSizes()"
-                class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl border border-slate-300 transition flex items-center gap-1.5 shadow-sm">
+
+        <!-- Main Navigation Tabs -->
+        <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+            <button onclick="switchTab('songsTab')" id="tabBtnSongs" class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-white text-brand-700 shadow-sm transition flex items-center gap-2">
+                <i class="fa-solid fa-music"></i> Songs & Upload
+            </button>
+            <button onclick="switchTab('singersTab')" id="tabBtnSingers" class="px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition flex items-center gap-2">
+                <i class="fa-solid fa-users"></i> Artists & Photos
+            </button>
+        </div>
+
+        <div class="flex items-center space-x-2">
+            <button onclick="fetchMissingSizes()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl border border-slate-300 transition flex items-center gap-1.5 shadow-sm">
                 <i class="fa-solid fa-weight-scale text-brand-600"></i> Fetch Sizes
             </button>
-            <button onclick="syncCatalogFromR2()"
-                class="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-xl border border-slate-300 transition flex items-center gap-2 shadow-sm">
-                <i class="fa-solid fa-rotate text-brand-600"></i> Sync songs.json from R2
+            <button onclick="syncCatalogFromR2()" class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium rounded-xl border border-slate-300 transition flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-rotate text-brand-600"></i> Sync R2
             </button>
-            <button onclick="publishCatalogToR2()" id="publishBtn"
-                class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-brand-600/20 transition flex items-center gap-2">
+            <button onclick="publishCatalogToR2()" id="publishBtn" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-brand-600/20 transition flex items-center gap-1.5">
                 <i class="fa-solid fa-cloud-arrow-up"></i> Publish to R2
             </button>
         </div>
     </header>
 
-    <main class="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-y-auto">
+    <!-- TAB 1: SONGS & UPLOAD -->
+    <main id="songsTab" class="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-y-auto">
 
         <!-- Left Column: Credentials & Upload Form -->
         <div class="lg:col-span-5 space-y-6">
@@ -145,8 +133,7 @@
                             onblur="this.value = this.value.trim(); updateSingerImageUrl()">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">Account ID (Cloudflare Dashboard
-                            URL)</label>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Account ID (Cloudflare Dashboard URL)</label>
                         <input type="text" id="r2AccountId" placeholder="e.g., 32-character hex ID..."
                             autocomplete="off" spellcheck="false"
                             class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500"
@@ -155,16 +142,16 @@
                     <div class="grid grid-cols-2 gap-2">
                         <div>
                             <label class="block text-xs font-medium text-slate-600 mb-1">Access Key ID</label>
-                            <input type="text" id="r2AccessKey" placeholder="Paste Access Key ID" autocomplete="off"
-                                spellcheck="false"
+                            <input type="text" id="r2AccessKey" placeholder="Paste Access Key ID"
+                                autocomplete="off" spellcheck="false"
                                 class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500"
                                 onblur="this.value = this.value.trim()">
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-slate-600 mb-1">Secret Access Key</label>
                             <div class="relative">
-                                <input type="text" id="r2SecretKey" placeholder="Paste Secret Key" autocomplete="off"
-                                    spellcheck="false"
+                                <input type="text" id="r2SecretKey" placeholder="Paste Secret Key"
+                                    autocomplete="off" spellcheck="false"
                                     class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 pr-9 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500"
                                     onblur="this.value = this.value.trim()">
                                 <button type="button" onclick="toggleSecretKeyVisibility()"
@@ -176,8 +163,8 @@
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-slate-600 mb-1">Bucket Name</label>
-                        <input type="text" id="r2BucketName" value="app-music-bucket" autocomplete="off"
-                            spellcheck="false"
+                        <input type="text" id="r2BucketName" value="app-music-bucket"
+                            autocomplete="off" spellcheck="false"
                             class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500"
                             onblur="this.value = this.value.trim()">
                     </div>
@@ -196,32 +183,27 @@
                 <form id="songForm" onsubmit="handleUploadSong(event)" class="space-y-4">
 
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1.5">Select MP3 Audio File
-                            (.mp3)</label>
+                        <label class="block text-xs font-medium text-slate-600 mb-1.5">Select MP3 Audio File (.mp3)</label>
                         <label for="audioFile"
                             class="flex flex-col items-center justify-center w-full h-28 border-2 border-brand-300 border-dashed rounded-xl cursor-pointer bg-brand-50/50 hover:bg-brand-50 transition">
                             <div class="flex flex-col items-center justify-center pt-4 pb-4 px-4 text-center">
                                 <i class="fa-solid fa-file-audio text-brand-600 text-2xl mb-1.5"></i>
-                                <p id="fileLabelText" class="text-xs text-slate-700 font-semibold mb-0.5">Click to
-                                    browse or drop MP3 file here</p>
+                                <p id="fileLabelText" class="text-xs text-slate-700 font-semibold mb-0.5">Click to browse or drop MP3 file here</p>
                                 <p class="text-[10px] text-slate-400">Auto-detects Title & Artist cleanly</p>
                             </div>
-                            <input type="file" id="audioFile" accept=".mp3,audio/mpeg" required class="hidden"
-                                onchange="handleFileSelected(this)">
+                            <input type="file" id="audioFile" accept=".mp3,audio/mpeg" required class="hidden" onchange="handleFileSelected(this)">
                         </label>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1.5">Song Title
-                            (ចំណងជើងបទចម្រៀង)</label>
+                        <label class="block text-xs font-medium text-slate-600 mb-1.5">Song Title (ចំណងជើងបទចម្រៀង)</label>
                         <input type="text" id="songTitle" required placeholder="Clean song title..."
                             class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500"
                             onblur="this.value = this.value.replace(/^\s+/, '').trim()">
                     </div>
 
                     <div class="relative">
-                        <label class="block text-xs font-medium text-slate-600 mb-1.5">Artist / Singer (តារាចម្រៀង -
-                            Search or Select)</label>
+                        <label class="block text-xs font-medium text-slate-600 mb-1.5">Artist / Singer (តារាចម្រៀង - Search or Select)</label>
                         <div class="relative">
                             <input type="text" id="songSinger" required placeholder="Type or select artist..."
                                 class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 pr-10 text-sm text-slate-800 focus:outline-none focus:border-brand-500"
@@ -279,28 +261,21 @@
                                     class="cursor-pointer px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-medium rounded-xl transition flex items-center gap-1.5 whitespace-nowrap">
                                     <i class="fa-solid fa-upload"></i> Upload Image
                                 </label>
-                                <input type="file" id="imageFile" accept="image/*" class="hidden"
-                                    onchange="handleImageFileSelected(this)">
+                                <input type="file" id="imageFile" accept="image/*" class="hidden" onchange="handleImageFileSelected(this)">
                             </div>
-                            <!-- Live Thumbnail Preview Badge -->
-                            <div id="imagePreviewContainer"
-                                class="flex items-center gap-2.5 p-2 bg-slate-50 border border-slate-200 rounded-xl">
+                            <div id="imagePreviewContainer" class="flex items-center gap-2.5 p-2 bg-slate-50 border border-slate-200 rounded-xl">
                                 <img id="imagePreviewThumb" src="" alt="Cover Preview"
                                     class="w-10 h-10 rounded-lg object-cover bg-slate-200 border border-slate-300 shrink-0"
                                     onerror="handleImageError(this)">
                                 <div class="overflow-hidden">
-                                    <p class="text-[11px] font-semibold text-slate-700 truncate"
-                                        id="imagePreviewStatus">No image loaded</p>
-                                    <p class="text-[9px] text-slate-400 truncate" id="imagePreviewUrlText">Select an
-                                        artist or enter folder name</p>
+                                    <p class="text-[11px] font-semibold text-slate-700 truncate" id="imagePreviewStatus">No image loaded</p>
+                                    <p class="text-[9px] text-slate-400 truncate" id="imagePreviewUrlText">Select an artist or enter folder name</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Live Upload Progress Bar Container (Hidden by default) -->
-                    <div id="uploadProgressContainer"
-                        class="hidden space-y-2 bg-brand-50/70 p-3.5 rounded-xl border border-brand-200">
+                    <div id="uploadProgressContainer" class="hidden space-y-2 bg-brand-50/70 p-3.5 rounded-xl border border-brand-200">
                         <div class="flex items-center justify-between text-xs font-semibold text-brand-900">
                             <span id="uploadProgressLabel" class="flex items-center gap-1.5">
                                 <i class="fa-solid fa-spinner fa-spin text-brand-600"></i> Uploading MP3 to R2...
@@ -308,9 +283,7 @@
                             <span id="uploadProgressPercent" class="font-mono text-brand-700 font-bold">0%</span>
                         </div>
                         <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
-                            <div id="uploadProgressBar"
-                                class="bg-gradient-to-r from-brand-500 to-indigo-600 h-2.5 rounded-full transition-all duration-150 ease-out"
-                                style="width: 0%"></div>
+                            <div id="uploadProgressBar" class="bg-gradient-to-r from-brand-500 to-indigo-600 h-2.5 rounded-full transition-all duration-150 ease-out" style="width: 0%"></div>
                         </div>
                         <div class="flex items-center justify-between text-[11px] text-slate-500 font-mono">
                             <span id="uploadBytesText">0 MB / 0 MB</span>
@@ -331,42 +304,33 @@
 
             <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex-1 flex flex-col">
 
-                <!-- Header with Title & Action Buttons -->
                 <div class="flex items-center justify-between gap-3 mb-3">
                     <div class="flex items-center gap-2">
                         <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2">
                             <i class="fa-solid fa-list-music text-brand-600"></i> R2 Songs Catalog
-                            <span id="songCountBadge"
-                                class="ml-1 text-xs px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-700 border border-brand-200 font-mono">0</span>
+                            <span id="songCountBadge" class="ml-1 text-xs px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-700 border border-brand-200 font-mono">0</span>
                         </h2>
                     </div>
 
                     <div class="flex items-center gap-2">
-                        <button onclick="resetAllFilters()"
-                            class="text-xs text-slate-600 hover:text-slate-800 transition flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 border border-slate-200">
+                        <button onclick="resetAllFilters()" class="text-xs text-slate-600 hover:text-slate-800 transition flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 border border-slate-200">
                             <i class="fa-solid fa-arrow-rotate-left"></i> Reset
                         </button>
-                        <button onclick="clearAllSongs()"
-                            class="text-xs text-rose-600 hover:text-rose-700 transition flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-rose-50 border border-rose-200">
+                        <button onclick="clearAllSongs()" class="text-xs text-rose-600 hover:text-rose-700 transition flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-rose-50 border border-rose-200">
                             <i class="fa-solid fa-trash-can"></i> Clear All
                         </button>
                     </div>
                 </div>
 
-                <!-- Multi-Filter Bar -->
-                <div
-                    class="grid grid-cols-1 sm:grid-cols-4 gap-2 mb-4 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 mb-4 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
                     <div class="relative">
-                        <i
-                            class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <input type="text" id="filterTitleInput" placeholder="Filter title..."
-                            oninput="applyAllFilters()"
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="filterTitleInput" placeholder="Filter title..." oninput="applyAllFilters()"
                             class="w-full bg-white border border-slate-300 rounded-lg pl-8 pr-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-brand-500">
                     </div>
 
                     <div>
-                        <select id="filterCategorySelect" onchange="applyAllFilters()"
-                            class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-brand-500">
+                        <select id="filterCategorySelect" onchange="applyAllFilters()" class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-brand-500">
                             <option value="">All Categories</option>
                             <option value="ចម្រៀងសម័យទំនើប">ចម្រៀងសម័យទំនើប</option>
                             <option value="ចម្រៀងសម័យដើម">ចម្រៀងសម័យដើម</option>
@@ -379,15 +343,13 @@
                     </div>
 
                     <div>
-                        <select id="filterSingerSelect" onchange="applyAllFilters()"
-                            class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-brand-500">
+                        <select id="filterSingerSelect" onchange="applyAllFilters()" class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-brand-500">
                             <option value="">All Singers</option>
                         </select>
                     </div>
 
                     <div>
-                        <select id="filterSizeSelect" onchange="applyAllFilters()"
-                            class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-brand-500">
+                        <select id="filterSizeSelect" onchange="applyAllFilters()" class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-brand-500">
                             <option value="">All Sizes</option>
                             <option value="small">&lt; 4 MB</option>
                             <option value="medium">4 – 8 MB</option>
@@ -398,11 +360,9 @@
                     </div>
                 </div>
 
-                <!-- Table Container -->
                 <div class="flex-1 overflow-x-auto rounded-xl border border-slate-200 bg-slate-50 min-h-[380px]">
                     <table class="w-full text-left text-sm text-slate-700">
-                        <thead
-                            class="bg-slate-100 text-xs uppercase text-slate-500 sticky top-0 border-b border-slate-200">
+                        <thead class="bg-slate-100 text-xs uppercase text-slate-500 sticky top-0 border-b border-slate-200">
                             <tr>
                                 <th scope="col" class="px-4 py-3">Title & Artist</th>
                                 <th scope="col" class="px-4 py-3">Category</th>
@@ -411,24 +371,18 @@
                                 <th scope="col" class="px-4 py-3 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="songsTableBody" class="divide-y divide-slate-200">
-                            <!-- Populated dynamically -->
-                        </tbody>
+                        <tbody id="songsTableBody" class="divide-y divide-slate-200"></tbody>
                     </table>
                 </div>
 
-                <!-- Pagination Footer -->
-                <div
-                    class="flex items-center justify-between pt-3 border-t border-slate-100 mt-2 text-xs text-slate-500">
+                <div class="flex items-center justify-between pt-3 border-t border-slate-100 mt-2 text-xs text-slate-500">
                     <span id="pageInfoText">Showing 0 to 0 of 0</span>
                     <div class="flex items-center gap-1">
-                        <button onclick="changePage(-1)" id="prevPageBtn"
-                            class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">
+                        <button onclick="changePage(-1)" id="prevPageBtn" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">
                             <i class="fa-solid fa-chevron-left"></i> Prev
                         </button>
                         <span id="pageBadge" class="px-2 font-mono font-medium text-slate-700">1</span>
-                        <button onclick="changePage(1)" id="nextPageBtn"
-                            class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">
+                        <button onclick="changePage(1)" id="nextPageBtn" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">
                             Next <i class="fa-solid fa-chevron-right"></i>
                         </button>
                     </div>
@@ -438,25 +392,48 @@
             <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col">
                 <div class="flex items-center justify-between mb-3">
                     <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2">
-                        <i class="fa-solid fa-code text-brand-600"></i> Live <code
-                            class="text-brand-600 font-mono text-sm">songs.json</code> Preview
+                        <i class="fa-solid fa-code text-brand-600"></i> Live <code class="text-brand-600 font-mono text-sm">songs.json</code> Preview
                     </h2>
                     <div id="statusMessage" class="text-xs font-medium text-emerald-600"></div>
                 </div>
                 <div class="relative">
-                    <pre id="jsonPreview"
-                        class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-xs font-mono text-brand-300 h-36 overflow-y-auto selection:bg-brand-500 selection:text-white">[]</pre>
+                    <pre id="jsonPreview" class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-xs font-mono text-brand-300 h-36 overflow-y-auto selection:bg-brand-500 selection:text-white">[]</pre>
                 </div>
             </div>
 
         </div>
     </main>
 
+    <!-- TAB 2: ARTISTS & SINGER PHOTO MANAGER -->
+    <main id="singersTab" class="hidden flex-1 max-w-7xl w-full mx-auto p-6 overflow-y-auto space-y-6">
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-users text-brand-600"></i> Artist Photo Manager (តារាចម្រៀង)
+                        <span id="singerCountBadge" class="text-xs px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-700 border border-brand-200 font-mono">0</span>
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-1">Replace placeholder emojis with high-resolution portraits uploaded directly to <code class="font-mono text-brand-600">singers/{folder}/profile.jpg</code></p>
+                </div>
+                <div class="w-full sm:w-72 relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="singerSearchInput" placeholder="Search singer..." oninput="renderSingersManager()"
+                        class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-brand-500">
+                </div>
+            </div>
+
+            <div id="singersGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Hidden File Input for Direct Singer Photo Upload -->
+    <input type="file" id="directSingerPhotoInput" accept="image/*" class="hidden" onchange="handleDirectSingerPhotoSelected(this)">
+
     <!-- Modal Dialog: Edit Song Details -->
-    <div id="editSongModal"
-        class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
-        <div
-            class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 transform transition-all">
+    <div id="editSongModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 transform transition-all">
             <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
                 <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
                     <i class="fa-solid fa-pen-to-square text-brand-600"></i> Edit Song Details
@@ -471,22 +448,17 @@
 
                 <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1">Song Title (ចំណងជើង)</label>
-                    <input type="text" id="editTitleInput" required
-                        class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500"
-                        onblur="this.value = this.value.replace(/^\s+/, '').trim()">
+                    <input type="text" id="editTitleInput" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500" onblur="this.value = this.value.replace(/^\s+/, '').trim()">
                 </div>
 
                 <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1">Artist / Singer (តារាចម្រៀង)</label>
-                    <input type="text" id="editSingerInput" required
-                        class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500"
-                        onblur="this.value = this.value.replace(/^\s+/, '').trim()">
+                    <input type="text" id="editSingerInput" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500" onblur="this.value = this.value.replace(/^\s+/, '').trim()">
                 </div>
 
                 <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1">Category (ប្រភេទ)</label>
-                    <select id="editCategorySelect"
-                        class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500 font-medium">
+                    <select id="editCategorySelect" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500 font-medium">
                         <option value="ចម្រៀងសម័យទំនើប">ចម្រៀងសម័យទំនើប (Modern)</option>
                         <option value="ចម្រៀងសម័យដើម">ចម្រៀងសម័យដើម (Classic)</option>
                         <option value="ចម្រៀង Rap">ចម្រៀង Rap (Rap)</option>
@@ -499,17 +471,14 @@
 
                 <div>
                     <label class="block text-xs font-medium text-slate-500 mb-1">R2 Audio Path (Fixed)</label>
-                    <input type="text" id="editUrlInput" disabled
-                        class="w-full bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-500 font-mono cursor-not-allowed">
+                    <input type="text" id="editUrlInput" disabled class="w-full bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-500 font-mono cursor-not-allowed">
                 </div>
 
                 <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
-                    <button type="button" onclick="closeEditModal()"
-                        class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
+                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
                         Cancel
                     </button>
-                    <button type="submit"
-                        class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-brand-600/20 transition flex items-center gap-1.5">
+                    <button type="submit" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-brand-600/20 transition flex items-center gap-1.5">
                         <i class="fa-solid fa-check"></i> Save Changes
                     </button>
                 </div>
@@ -522,6 +491,7 @@
         let filteredCatalog = [];
         let r2BucketFolders = [];
         let uploadedImageFile = null;
+        let selectedSingerForDirectUpload = null;
 
         let currentPage = 1;
         const pageSize = 10;
@@ -539,6 +509,140 @@
                 }
             });
         });
+
+        function switchTab(tabId) {
+            const songsTab = document.getElementById('songsTab');
+            const singersTab = document.getElementById('singersTab');
+            const btnSongs = document.getElementById('tabBtnSongs');
+            const btnSingers = document.getElementById('tabBtnSingers');
+
+            if (tabId === 'singersTab') {
+                songsTab.classList.add('hidden');
+                singersTab.classList.remove('hidden');
+                btnSingers.className = "px-4 py-1.5 rounded-lg text-xs font-semibold bg-white text-brand-700 shadow-sm transition flex items-center gap-2";
+                btnSongs.className = "px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition flex items-center gap-2";
+                renderSingersManager();
+            } else {
+                singersTab.classList.add('hidden');
+                songsTab.classList.remove('hidden');
+                btnSongs.className = "px-4 py-1.5 rounded-lg text-xs font-semibold bg-white text-brand-700 shadow-sm transition flex items-center gap-2";
+                btnSingers.className = "px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition flex items-center gap-2";
+            }
+        }
+
+        function triggerDirectSingerUpload(singerName) {
+            selectedSingerForDirectUpload = singerName;
+            const input = document.getElementById('directSingerPhotoInput');
+            input.value = '';
+            input.click();
+        }
+
+        async function handleDirectSingerPhotoSelected(input) {
+            if (!input.files || !input.files[0] || !selectedSingerForDirectUpload) return;
+            const file = input.files[0];
+            const s3 = getS3Client();
+            if (!s3) {
+                alert('Please configure your Cloudflare R2 credentials first.');
+                return;
+            }
+
+            const singerName = selectedSingerForDirectUpload;
+            const folder = findExistingFolderMatch(singerName);
+            const bucketName = document.getElementById('r2BucketName').value.trim();
+            const baseUrl = document.getElementById('r2BaseUrl').value.trim().replace(/\/+$/, '');
+
+            const key = `singers/${folder}/profile.jpg`;
+            const timestamp = Date.now();
+            const newPhotoUrl = `${baseUrl}/singers/${encodeURIComponent(folder)}/profile.jpg?v=${timestamp}`;
+
+            showStatus(`Uploading photo for ${singerName}...`, 'blue');
+
+            try {
+                await s3.putObject({
+                    Bucket: bucketName,
+                    Key: key,
+                    Body: file,
+                    ContentType: file.type || 'image/jpeg'
+                }).promise();
+
+                // Update all songs belonging to this singer in catalog
+                let updatedCount = 0;
+                const cleanTarget = normalizeKhmer(folder).toLowerCase();
+                songsCatalog.forEach(song => {
+                    const songSinger = normalizeKhmer(song.singer || '').toLowerCase();
+                    if (songSinger === cleanTarget || songSinger.includes(cleanTarget)) {
+                        song.image = newPhotoUrl;
+                        updatedCount++;
+                    }
+                });
+
+                renderSingersManager();
+                applyAllFilters();
+                showStatus(`Uploaded photo for ${singerName}! Saving catalog...`, 'emerald');
+
+                // Auto publish updated catalog so songs.json has the new photo
+                await publishCatalogToR2(true);
+                alert(`Photo for "${singerName}" successfully updated in Cloudflare R2 and synced across ${updatedCount} song(s)!`);
+            } catch (err) {
+                alert('Upload failed: ' + err.message);
+                showStatus('Photo upload failed', 'rose');
+            }
+        }
+
+        function renderSingersManager() {
+            const container = document.getElementById('singersGrid');
+            const badge = document.getElementById('singerCountBadge');
+            const searchVal = (document.getElementById('singerSearchInput')?.value || '').trim().toLowerCase();
+            const baseUrl = document.getElementById('r2BaseUrl').value.trim().replace(/\/+$/, '');
+
+            const singers = getUniqueSingers();
+            badge.textContent = singers.length;
+
+            const filtered = searchVal 
+                ? singers.filter(s => s.toLowerCase().includes(searchVal))
+                : singers;
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="col-span-full py-12 text-center text-slate-400 text-xs">No artists found.</div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(singer => {
+                const folder = findExistingFolderMatch(singer);
+                // Look for existing image url in catalog
+                const songWithImg = songsCatalog.find(s => normalizeKhmer(s.singer) === normalizeKhmer(singer) && s.image);
+                const currentImg = (songWithImg && songWithImg.image) 
+                    ? songWithImg.image 
+                    : `${baseUrl}/singers/${encodeURIComponent(folder)}/profile.jpg`;
+
+                const songCount = songsCatalog.filter(s => normalizeKhmer(s.singer) === normalizeKhmer(singer)).length;
+
+                return `
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col items-center text-center relative group hover:border-brand-300 hover:shadow-md transition">
+                    <div class="relative w-24 h-24 mb-3">
+                        <img src="${currentImg}" 
+                             onerror="this.onerror=null; this.src='https://api.dicebear.com/7.x/bottts/svg?seed=' + encodeURIComponent('${singer}')"
+                             class="w-24 h-24 rounded-full object-cover border-2 border-white shadow-md bg-white" />
+                        <button onclick="triggerDirectSingerUpload('${singer.replace(/'/g, "\\'")}')" 
+                                title="Change Artist Photo"
+                                class="absolute bottom-0 right-0 bg-brand-600 hover:bg-brand-700 text-white w-8 h-8 rounded-full shadow-lg flex items-center justify-center transition border-2 border-white">
+                            <i class="fa-solid fa-camera text-xs"></i>
+                        </button>
+                    </div>
+
+                    <h3 class="text-sm font-bold text-slate-800 truncate w-full">${singer}</h3>
+                    <p class="text-[11px] text-slate-500 font-mono mt-0.5 truncate w-full">singers/${folder}/</p>
+                    <span class="mt-2 text-[10px] px-2.5 py-0.5 rounded-full bg-slate-200 text-slate-700 font-semibold">${songCount} Song(s)</span>
+
+                    <button onclick="triggerDirectSingerUpload('${singer.replace(/'/g, "\\'")}')"
+                            class="mt-3.5 w-full py-2 bg-white hover:bg-brand-50 text-brand-700 border border-slate-300 hover:border-brand-300 rounded-xl text-xs font-semibold shadow-sm transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-upload"></i> Upload / Replace Photo
+                    </button>
+                </div>
+                `;
+            }).join('');
+        }
+
         // Generates a 512x512 PNG Avatar with varied people emojis and modern gradients
         function generateSingerAvatarBlob(singerName) {
             const canvas = document.createElement('canvas');
@@ -546,22 +650,19 @@
             canvas.height = 512;
             const ctx = canvas.getContext('2d');
 
-            // Selection of people, singer, and performer emojis
             const avatars = ['🧑‍🎤', '👩‍🎤', '👨‍🎤', '👱‍♀️', '👱‍♂️', '👩‍🦱', '👨‍🦱', '👩‍🦰', '👨‍🦰', '💃', '🕺', '🎧'];
 
-            // Curated gradient pairs
             const gradients = [
-                ['#8B5CF6', '#6D28D9'], // Royal Violet
-                ['#EC4899', '#BE185D'], // Rose Magenta
-                ['#3B82F6', '#1D4ED8'], // Deep Sky Blue
-                ['#10B981', '#047857'], // Emerald Mint
-                ['#F59E0B', '#D97706'], // Warm Amber
-                ['#06B6D4', '#0E7490'], // Ocean Teal
-                ['#F43F5E', '#9F1239'], // Crimson Coral
-                ['#6366F1', '#4338CA']  // Indigo Blue
+                ['#8B5CF6', '#6D28D9'],
+                ['#EC4899', '#BE185D'],
+                ['#3B82F6', '#1D4ED8'],
+                ['#10B981', '#047857'],
+                ['#F59E0B', '#D97706'],
+                ['#06B6D4', '#0E7490'],
+                ['#F43F5E', '#9F1239'],
+                ['#6366F1', '#4338CA']
             ];
 
-            // Compute consistent hash from singer's name so each singer gets a unique avatar
             let hash = 0;
             const clean = (singerName || 'Singer').trim();
             for (let i = 0; i < clean.length; i++) {
@@ -573,21 +674,18 @@
             const chosenGradient = gradients[safeHash % gradients.length];
             const chosenEmoji = avatars[safeHash % avatars.length];
 
-            // 1. Draw smooth gradient background
             const grad = ctx.createLinearGradient(0, 0, 512, 512);
             grad.addColorStop(0, chosenGradient[0]);
             grad.addColorStop(1, chosenGradient[1]);
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, 512, 512);
 
-            // 2. Draw subtle inner glow ring
             ctx.beginPath();
             ctx.arc(256, 256, 220, 0, Math.PI * 2);
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
             ctx.lineWidth = 14;
             ctx.stroke();
 
-            // 3. Center and draw the Person Emoji
             ctx.font = '220px "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -610,7 +708,6 @@
             }
         }
 
-        // Strips any space in front, invisible zero-width spaces, and normalizes Sisamuth variations
         function normalizeKhmer(str) {
             if (!str) return '';
             let s = str
@@ -625,7 +722,6 @@
             return s;
         }
 
-        // Cleans punctuation, removes file extensions, and strips all spaces in front
         function cleanString(str) {
             if (!str) return '';
             return str
@@ -668,7 +764,7 @@
                 }
             });
 
-            const defaultBase = ['ស៊ីន ស៊ីសាមុត', 'សុខ ពិសី', 'ម៉ៅ ហាជី', 'ព្រាប សុវត្ថិ', 'ប៉ែន រ៉ន', 'នាង ដាវីន', 'ថុល សុភិទិ'];
+            const defaultBase = ['ស៊ីន ស៊ីសាមុត', 'សុខ ពិសី', 'ម៉ៅ ហាជី', 'ព្រាប សុវត្ថិ', 'ប៉ែន រ៉ន', 'នាង ដាវីន', 'ថុល សុភិទិ', 'អៀង ស៊ីថុល'];
             defaultBase.forEach(def => {
                 const clean = normalizeKhmer(def);
                 if (clean && !seen.has(clean)) {
@@ -685,7 +781,6 @@
             if (!clean) return '';
 
             const folders = getUniqueFolders();
-
             const exact = folders.find(f => f === clean);
             if (exact) return exact;
 
@@ -933,6 +1028,7 @@
                 }
                 updateDropdownLists();
                 populateSingerFilterDropdown();
+                renderSingersManager();
             } catch (e) {
                 console.warn('Could not query live R2 bucket folders:', e);
             }
@@ -1027,6 +1123,7 @@
                         applyAllFilters();
                         updateDropdownLists();
                         populateSingerFilterDropdown();
+                        renderSingersManager();
                         showStatus('Successfully synced songs.json from R2!', 'emerald');
 
                         const hasMissingSizes = songsCatalog.some(s => !s.size || s.size <= 0);
@@ -1221,7 +1318,7 @@
             }
 
             const bucketName = document.getElementById('r2BucketName').value.trim();
-            const baseUrl = document.getElementById('r2BaseUrl').value.trim();
+            const baseUrl = document.getElementById('r2BaseUrl').value.trim().replace(/\/+$/, '');
 
             const uploadBtn = document.getElementById('uploadBtn');
             uploadBtn.disabled = true;
@@ -1246,7 +1343,6 @@
                 const permanentImageUrl = `${baseUrl}/singers/${encodeURIComponent(folder)}/profile.jpg`;
 
                 if (uploadedImageFile) {
-                    // If a real photo was chosen, upload it
                     await s3.putObject({
                         Bucket: bucketName,
                         Key: singerProfileKey,
@@ -1255,7 +1351,6 @@
                     }).promise();
                     image = permanentImageUrl;
                 } else {
-                    // Check if profile.jpg already exists for this singer
                     let profileExists = false;
                     try {
                         await s3.headObject({
@@ -1267,7 +1362,6 @@
                         profileExists = false;
                     }
 
-                    // If not existing, generate and upload a people emoji avatar
                     if (!profileExists) {
                         const avatarBlob = await generateSingerAvatarBlob(singer);
                         await s3.putObject({
@@ -1326,6 +1420,7 @@
                 }
 
                 populateSingerFilterDropdown();
+                renderSingersManager();
                 applyAllFilters();
 
                 fileInput.value = '';
@@ -1349,14 +1444,16 @@
             }
         }
 
-        async function publishCatalogToR2() {
+        async function publishCatalogToR2(silent = false) {
             const s3 = getS3Client();
             if (!s3) return;
 
             const bucketName = document.getElementById('r2BucketName').value.trim();
             const publishBtn = document.getElementById('publishBtn');
-            publishBtn.disabled = true;
-            publishBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Publishing...`;
+            if (!silent) {
+                publishBtn.disabled = true;
+                publishBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Publishing...`;
+            }
 
             const jsonString = JSON.stringify(songsCatalog, null, 2);
 
@@ -1366,8 +1463,10 @@
                 Body: jsonString,
                 ContentType: 'application/json'
             }, function (err, data) {
-                publishBtn.disabled = false;
-                publishBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Publish to R2`;
+                if (!silent) {
+                    publishBtn.disabled = false;
+                    publishBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Publish to R2`;
+                }
 
                 if (err) {
                     alert('Failed to publish songs.json: ' + err.message);
@@ -1376,7 +1475,7 @@
                 }
 
                 showStatus('songs.json published to R2 successfully!', 'emerald');
-                alert('Success! songs.json published to Cloudflare R2.');
+                if (!silent) alert('Success! songs.json published to Cloudflare R2.');
             });
         }
 
@@ -1430,6 +1529,7 @@
 
             closeEditModal();
             populateSingerFilterDropdown();
+            renderSingersManager();
             applyAllFilters();
 
             showStatus('Song metadata updated! Click "Publish to R2" to save live catalog.', 'emerald');
@@ -1467,6 +1567,7 @@
                 if (rawIdx !== -1) songsCatalog.splice(rawIdx, 1);
 
                 populateSingerFilterDropdown();
+                renderSingersManager();
                 applyAllFilters();
 
                 const jsonString = JSON.stringify(songsCatalog, null, 2);
@@ -1492,6 +1593,7 @@
                 currentPage = 1;
                 updateDropdownLists();
                 populateSingerFilterDropdown();
+                renderSingersManager();
                 renderTable();
             }
         }
@@ -1541,9 +1643,9 @@
                 return `
                 <tr class="hover:bg-slate-100/80 transition">
                     <td class="px-4 py-3 flex items-center gap-3">
-                      <img loading="lazy" src="${song.image}" 
-     onerror="this.onerror=null; this.src='https://api.dicebear.com/7.x/bottts/svg?seed=' + encodeURIComponent('${song.singer}')" 
-     class="w-9 h-9 rounded-lg object-cover bg-slate-200 border border-slate-200 shadow-sm" />
+                        <img loading="lazy" src="${song.image}" 
+                             onerror="this.onerror=null; this.src='https://api.dicebear.com/7.x/bottts/svg?seed=' + encodeURIComponent('${song.singer}')" 
+                             class="w-9 h-9 rounded-lg object-cover bg-slate-200 border border-slate-200 shadow-sm" />
                         <div>
                             <div class="font-semibold text-slate-900 text-xs">${song.title}</div>
                             <div class="text-[11px] text-slate-500">${song.singer}</div>
