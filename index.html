@@ -102,6 +102,9 @@
         </div>
 
         <div class="flex items-center space-x-2">
+            <button onclick="rebuildCatalogFromBucket()" class="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-xl border border-emerald-300 transition flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-wand-magic-sparkles text-emerald-600"></i> Restore from R2 Bucket
+            </button>
             <button onclick="fetchMissingSizes()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl border border-slate-300 transition flex items-center gap-1.5 shadow-sm">
                 <i class="fa-solid fa-weight-scale text-brand-600"></i> Fetch Sizes
             </button>
@@ -283,7 +286,9 @@
                             <span id="uploadProgressPercent" class="font-mono text-brand-700 font-bold">0%</span>
                         </div>
                         <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
-                            <div id="uploadProgressBar" class="bg-gradient-to-r from-brand-500 to-indigo-600 h-2.5 rounded-full transition-all duration-150 ease-out" style="width: 0%"></div>
+                            <div id="uploadProgressBar"
+                                class="bg-gradient-to-r from-brand-500 to-indigo-600 h-2.5 rounded-full transition-all duration-150 ease-out"
+                                style="width: 0%"></div>
                         </div>
                         <div class="flex items-center justify-between text-[11px] text-slate-500 font-mono">
                             <span id="uploadBytesText">0 MB / 0 MB</span>
@@ -413,7 +418,7 @@
                         <i class="fa-solid fa-users text-brand-600"></i> Artist Photo Manager (តារាចម្រៀង)
                         <span id="singerCountBadge" class="text-xs px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-700 border border-brand-200 font-mono">0</span>
                     </h2>
-                    <p class="text-xs text-slate-500 mt-1">Replace placeholder emojis with high-resolution portraits uploaded directly to <code class="font-mono text-brand-600">singers/{folder}/profile.jpg</code></p>
+                    <p class="text-xs text-slate-500 mt-1">Replace placeholder emojis with portraits uploaded directly to <code class="font-mono text-brand-600">singers/{folder}/profile.jpg</code></p>
                 </div>
                 <div class="w-full sm:w-72 relative">
                     <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
@@ -530,6 +535,84 @@
             }
         }
 
+        // Direct scan of R2 bucket to recover all songs when songs.json is empty
+        async function rebuildCatalogFromBucket() {
+            const s3 = getS3Client();
+            if (!s3) {
+                alert('Please ensure your R2 Account ID, Access Key, and Secret Key are saved first.');
+                return;
+            }
+
+            const bucketName = document.getElementById('r2BucketName').value.trim();
+            const baseUrl = document.getElementById('r2BaseUrl').value.trim().replace(/\/+$/, '');
+
+            showStatus('Scanning R2 bucket for all MP3 files...', 'blue');
+
+            try {
+                let continuationToken = null;
+                const recoveredSongs = [];
+
+                do {
+                    const res = await s3.listObjectsV2({
+                        Bucket: bucketName,
+                        ContinuationToken: continuationToken
+                    }).promise();
+
+                    if (res && res.Contents) {
+                        res.Contents.forEach(obj => {
+                            const key = obj.Key;
+                            if (key.toLowerCase().endsWith('.mp3') && key.includes('/')) {
+                                const parts = key.split('/');
+                                const folder = parts[0];
+                                const filename = parts.slice(1).join('/');
+
+                                let baseTitle = filename.replace(/\.[^/.]+$/, "");
+                                let singer = folder;
+
+                                const separators = [" - ", " – ", " | ", "_"];
+                                for (let sep of separators) {
+                                    if (baseTitle.includes(sep)) {
+                                        const p = baseTitle.split(sep);
+                                        baseTitle = p[0].trim();
+                                        if (p.length > 1 && !singer) singer = p[1].trim();
+                                        break;
+                                    }
+                                }
+
+                                recoveredSongs.push({
+                                    title: cleanString(baseTitle),
+                                    singer: cleanString(singer),
+                                    category: "ចម្រៀងសម័យទំនើប",
+                                    image: `${baseUrl}/singers/${encodeURIComponent(folder)}/profile.jpg`,
+                                    url: key,
+                                    size: obj.Size
+                                });
+                            }
+                        });
+                    }
+                    continuationToken = res.IsTruncated ? res.NextContinuationToken : null;
+                } while (continuationToken);
+
+                if (recoveredSongs.length === 0) {
+                    alert('No MP3 files found in your bucket folders.');
+                    showStatus('No MP3 files found in bucket', 'slate');
+                    return;
+                }
+
+                songsCatalog = recoveredSongs;
+                populateSingerFilterDropdown();
+                renderSingersManager();
+                applyAllFilters();
+                showStatus(`Restored ${songsCatalog.length} songs from bucket! Publishing to R2...`, 'emerald');
+
+                await publishCatalogToR2(false);
+                alert(`Success! Restored all ${songsCatalog.length} songs and republished songs.json to R2.`);
+            } catch (err) {
+                alert('Failed to scan bucket: ' + err.message);
+                showStatus('Restoration failed', 'rose');
+            }
+        }
+
         function triggerDirectSingerUpload(singerName) {
             selectedSingerForDirectUpload = singerName;
             const input = document.getElementById('directSingerPhotoInput');
@@ -565,7 +648,6 @@
                     ContentType: file.type || 'image/jpeg'
                 }).promise();
 
-                // Update all songs belonging to this singer in catalog
                 let updatedCount = 0;
                 const cleanTarget = normalizeKhmer(folder).toLowerCase();
                 songsCatalog.forEach(song => {
@@ -580,7 +662,6 @@
                 applyAllFilters();
                 showStatus(`Uploaded photo for ${singerName}! Saving catalog...`, 'emerald');
 
-                // Auto publish updated catalog so songs.json has the new photo
                 await publishCatalogToR2(true);
                 alert(`Photo for "${singerName}" successfully updated in Cloudflare R2 and synced across ${updatedCount} song(s)!`);
             } catch (err) {
@@ -609,7 +690,6 @@
 
             container.innerHTML = filtered.map(singer => {
                 const folder = findExistingFolderMatch(singer);
-                // Look for existing image url in catalog
                 const songWithImg = songsCatalog.find(s => normalizeKhmer(s.singer) === normalizeKhmer(singer) && s.image);
                 const currentImg = (songWithImg && songWithImg.image) 
                     ? songWithImg.image 
@@ -643,7 +723,6 @@
             }).join('');
         }
 
-        // Generates a 512x512 PNG Avatar with varied people emojis and modern gradients
         function generateSingerAvatarBlob(singerName) {
             const canvas = document.createElement('canvas');
             canvas.width = 512;
@@ -1448,6 +1527,12 @@
             const s3 = getS3Client();
             if (!s3) return;
 
+            // Safety guard: prevent overwriting R2 with an empty catalog
+            if (songsCatalog.length === 0) {
+                const confirmEmpty = confirm("⚠️ Warning: Your songs catalog is currently 0. Publishing will wipe out all songs from your mobile app. Are you sure you want to proceed?");
+                if (!confirmEmpty) return;
+            }
+
             const bucketName = document.getElementById('r2BucketName').value.trim();
             const publishBtn = document.getElementById('publishBtn');
             if (!silent) {
@@ -1514,7 +1599,7 @@
                 return;
             }
 
-            const isDuplicate = songsCatalog.some((s, i) =>
+            const isDuplicate = songsCatalog.some((s, i) => 
                 i !== idx && s.title.toLowerCase() === newTitle.toLowerCase()
             );
 
@@ -1630,7 +1715,7 @@
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="5" class="px-4 py-10 text-center text-slate-400 text-xs">
-                            ${songsCatalog.length === 0 ? 'No songs in catalog yet. Upload an MP3 and publish to R2.' : 'No songs match the current filter criteria.'}
+                            ${songsCatalog.length === 0 ? 'No songs in catalog yet. Click "Restore from R2 Bucket" to scan your files.' : 'No songs match the current filter criteria.'}
                         </td>
                     </tr>
                 `;
