@@ -566,9 +566,12 @@
 
                 let updatedCount = 0;
                 const cleanTarget = normalizeKhmer(folder).toLowerCase();
+                const cleanSingerTarget = normalizeKhmer(singerName).toLowerCase();
+
                 songsCatalog.forEach(song => {
                     const songSinger = normalizeKhmer(song.singer || '').toLowerCase();
-                    if (songSinger === cleanTarget || songSinger.includes(cleanTarget)) {
+                    const songFolderPart = normalizeKhmer(decodeURIComponent(song.url || '')).split('/')[0].toLowerCase();
+                    if (songSinger === cleanTarget || songSinger === cleanSingerTarget || songSinger.includes(cleanTarget) || songFolderPart === cleanTarget) {
                         song.image = newPhotoUrl;
                         updatedCount++;
                     }
@@ -609,7 +612,7 @@
                 const songWithImg = songsCatalog.find(s => normalizeKhmer(s.singer) === normalizeKhmer(singer) && s.image);
                 const currentImg = (songWithImg && songWithImg.image) 
                     ? songWithImg.image 
-                    : `${baseUrl}/singers/${encodeURIComponent(folder)}/profile.jpg`;
+                    : `${baseUrl}/singers/${encodeURIComponent(folder)}/profile.jpg?v=${Date.now()}`;
 
                 const songCount = songsCatalog.filter(s => normalizeKhmer(s.singer) === normalizeKhmer(singer)).length;
 
@@ -859,14 +862,16 @@
 
             const cleanTarget = normalizeKhmer(existingFolder).toLowerCase();
             const existingSong = songsCatalog.find(s =>
-                (s.singer && normalizeKhmer(s.singer).toLowerCase() === cleanTarget) ||
-                (s.url && normalizeKhmer(decodeURIComponent(s.url)).toLowerCase().startsWith(cleanTarget + '/'))
+                s.image && !s.image.includes('unsplash.com') && (
+                    (s.singer && normalizeKhmer(s.singer).toLowerCase() === cleanTarget) ||
+                    (s.url && normalizeKhmer(decodeURIComponent(s.url)).toLowerCase().startsWith(cleanTarget + '/'))
+                )
             );
 
-            if (existingSong && existingSong.image && !existingSong.image.includes('unsplash.com')) {
+            if (existingSong && existingSong.image) {
                 imageInput.value = existingSong.image;
             } else if (baseUrl) {
-                imageInput.value = `${baseUrl}/singers/${encodeURIComponent(existingFolder)}/profile.jpg`;
+                imageInput.value = `${baseUrl}/singers/${encodeURIComponent(existingFolder)}/profile.jpg?v=${Date.now()}`;
             }
 
             imageInput.scrollLeft = imageInput.scrollWidth;
@@ -1330,36 +1335,55 @@
                 const permanentImageUrl = `${baseUrl}/singers/${encodeURIComponent(folder)}/profile.jpg`;
 
                 if (uploadedImageFile) {
+                    const timestamp = Date.now();
                     await s3.putObject({
                         Bucket: bucketName,
                         Key: singerProfileKey,
                         Body: uploadedImageFile,
                         ContentType: uploadedImageFile.type || 'image/jpeg'
                     }).promise();
-                    image = permanentImageUrl;
+                    image = `${permanentImageUrl}?v=${timestamp}`;
                 } else {
-                    let profileExists = false;
-                    try {
-                        await s3.headObject({
-                            Bucket: bucketName,
-                            Key: singerProfileKey
-                        }).promise();
-                        profileExists = true;
-                    } catch (headErr) {
-                        profileExists = false;
-                    }
+                    const cleanTarget = normalizeKhmer(folder).toLowerCase();
+                    const cleanSingerTarget = normalizeKhmer(singer).toLowerCase();
 
-                    if (!profileExists) {
-                        const avatarBlob = await generateSingerAvatarBlob(singer);
-                        await s3.putObject({
-                            Bucket: bucketName,
-                            Key: singerProfileKey,
-                            Body: avatarBlob,
-                            ContentType: 'image/png'
-                        }).promise();
-                    }
+                    // Check if an existing song for this artist already has a profile image URL
+                    const existingSongWithImg = songsCatalog.find(s =>
+                        s.image && !s.image.includes('unsplash.com') && (
+                            (s.singer && (normalizeKhmer(s.singer).toLowerCase() === cleanTarget || normalizeKhmer(s.singer).toLowerCase() === cleanSingerTarget)) ||
+                            (s.url && normalizeKhmer(decodeURIComponent(s.url)).toLowerCase().startsWith(cleanTarget + '/'))
+                        )
+                    );
 
-                    image = permanentImageUrl;
+                    if (existingSongWithImg && existingSongWithImg.image) {
+                        image = existingSongWithImg.image;
+                    } else if (image && image.startsWith('http')) {
+                        // Keep the image field already populated in the form
+                    } else {
+                        // Check if file exists in R2 or create placeholder
+                        let profileExists = false;
+                        try {
+                            await s3.headObject({
+                                Bucket: bucketName,
+                                Key: singerProfileKey
+                            }).promise();
+                            profileExists = true;
+                        } catch (headErr) {
+                            profileExists = false;
+                        }
+
+                        if (!profileExists) {
+                            const avatarBlob = await generateSingerAvatarBlob(singer);
+                            await s3.putObject({
+                                Bucket: bucketName,
+                                Key: singerProfileKey,
+                                Body: avatarBlob,
+                                ContentType: 'image/png'
+                            }).promise();
+                        }
+
+                        image = `${permanentImageUrl}?v=${Date.now()}`;
+                    }
                 }
 
                 const filename = file.name;
@@ -1396,7 +1420,7 @@
                     title,
                     singer,
                     category,
-                    image: image && !image.startsWith('[Selected') ? image : `${baseUrl}/singers/${encodeURIComponent(folder)}/profile.jpg`,
+                    image: image && !image.startsWith('[Selected') ? image : `${baseUrl}/singers/${encodeURIComponent(folder)}/profile.jpg?v=${Date.now()}`,
                     url: r2Path,
                     size: file.size
                 };
