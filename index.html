@@ -80,14 +80,14 @@
 
     <header class="bg-white border-b border-slate-200 sticky top-0 z-50 px-6 py-3.5 flex flex-wrap items-center justify-between gap-4 shadow-sm">
         <div class="flex items-center space-x-3">
-            <div class="bg-brand-600 text-white p-2.5 rounded-xl shadow-lg shadow-brand-600/20 flex items-center justify-center">
+            <div id="headerBrandIcon" class="bg-brand-600 text-white p-2.5 rounded-xl shadow-lg shadow-brand-600/20 flex items-center justify-center transition-colors">
                 <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
             </div>
             <div>
                 <h1 class="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
                     ចម្រៀងខ្មែរ R2 Direct Admin <span class="text-xs px-2 py-0.5 rounded-full bg-brand-100 text-brand-700 border border-brand-200 font-medium">Cloudflare Manager</span>
                 </h1>
-                <p class="text-xs text-slate-500">Manage MP3s, artist photos & publish <code class="text-brand-600 font-mono font-semibold">songs.json</code></p>
+                <p id="headerSubtitle" class="text-xs text-slate-500">Manage MP3s, artist photos & publish <code class="text-brand-600 font-mono font-semibold">songs.json</code></p>
             </div>
         </div>
 
@@ -99,9 +99,13 @@
             <button onclick="switchTab('singersTab')" id="tabBtnSingers" class="px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition flex items-center gap-2">
                 <i class="fa-solid fa-users"></i> Artists & Photos
             </button>
+            <button onclick="switchTab('remixTab')" id="tabBtnRemix" class="px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition flex items-center gap-2">
+                <i class="fa-solid fa-compact-disc"></i> Remix Songs
+            </button>
         </div>
 
-        <div class="flex items-center space-x-2">
+        <!-- Action Buttons for Main Songs & Artists Tabs -->
+        <div id="mainHeaderActions" class="flex items-center space-x-2">
             <button onclick="fetchMissingSizes()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl border border-slate-300 transition flex items-center gap-1.5 shadow-sm">
                 <i class="fa-solid fa-weight-scale text-brand-600"></i> Fetch Sizes
             </button>
@@ -112,9 +116,24 @@
                 <i class="fa-solid fa-cloud-arrow-up"></i> Publish to R2
             </button>
         </div>
+
+        <!-- Action Buttons for Remix Tab -->
+        <div id="remixHeaderActions" class="hidden flex items-center space-x-2">
+            <button onclick="fetchMissingRemixSizes()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl border border-slate-300 transition flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-weight-scale text-cyan-600"></i> Fetch Sizes
+            </button>
+            <button onclick="syncRemixCatalogFromR2()" class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium rounded-xl border border-slate-300 transition flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-rotate text-cyan-600"></i> Sync Remix R2
+            </button>
+            <button onclick="publishRemixCatalogToR2()" id="publishRemixBtn" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-cyan-600/20 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Publish Remixes
+            </button>
+        </div>
     </header>
 
-    <!-- TAB 1: SONGS & UPLOAD -->
+    <!-- ========================================================================= -->
+    <!-- TAB 1: SONGS & UPLOAD (app-music-bucket)                                  -->
+    <!-- ========================================================================= -->
     <main id="songsTab" class="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-y-auto">
 
         <!-- Left Column: Credentials & Upload Form -->
@@ -127,7 +146,7 @@
                 </h2>
                 <div class="space-y-3">
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">R2 Public Base URL</label>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">R2 Public Base URL (Main Songs)</label>
                         <input type="text" id="r2BaseUrl" value="https://pub-4b6e0edb03794226bc7b6bf9b9dc1b4c.r2.dev"
                             class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500"
                             onblur="this.value = this.value.trim(); updateSingerImageUrl()">
@@ -137,6 +156,7 @@
                         <input type="text" id="r2AccountId" placeholder="e.g., 32-character hex ID..."
                             autocomplete="off" spellcheck="false"
                             class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500"
+                            oninput="syncAccountIdInputs(this.value)"
                             onblur="this.value = this.value.trim()">
                     </div>
                     <div class="grid grid-cols-2 gap-2">
@@ -144,25 +164,27 @@
                             <label class="block text-xs font-medium text-slate-600 mb-1">Access Key ID</label>
                             <input type="text" id="r2AccessKey" placeholder="Paste Access Key ID"
                                 autocomplete="off" spellcheck="false"
-                                class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500"
+                                class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500"
+                                oninput="syncAccessKeyInputs(this.value)"
                                 onblur="this.value = this.value.trim()">
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-slate-600 mb-1">Secret Access Key</label>
                             <div class="relative">
-                                <input type="text" id="r2SecretKey" placeholder="Paste Secret Key"
+                                <input type="password" id="r2SecretKey" placeholder="Paste Secret Key"
                                     autocomplete="off" spellcheck="false"
                                     class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 pr-9 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500"
+                                    oninput="syncSecretKeyInputs(this.value)"
                                     onblur="this.value = this.value.trim()">
-                                <button type="button" onclick="toggleSecretKeyVisibility()"
+                                <button type="button" onclick="toggleSecretKeyVisibility('r2SecretKey', 'secretKeyEyeIcon')"
                                     class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none">
-                                    <i id="secretKeyEyeIcon" class="fa-solid fa-eye text-xs"></i>
+                                    <i id="secretKeyEyeIcon" class="fa-solid fa-eye-slash text-xs"></i>
                                 </button>
                             </div>
                         </div>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">Bucket Name</label>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Main Bucket Name</label>
                         <input type="text" id="r2BucketName" value="app-music-bucket"
                             autocomplete="off" spellcheck="false"
                             class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-brand-500"
@@ -193,6 +215,15 @@
                             </div>
                             <input type="file" id="audioFile" accept=".mp3,audio/mpeg" required class="hidden" onchange="handleFileSelected(this)">
                         </label>
+
+                        <!-- Audio Preview Player -->
+                        <div id="songAudioPreviewContainer" class="hidden mt-2.5 p-2.5 bg-brand-50/70 border border-brand-200 rounded-xl">
+                            <div class="flex items-center justify-between text-[11px] font-semibold text-brand-700 mb-1.5">
+                                <span class="flex items-center gap-1.5"><i class="fa-solid fa-headphones"></i> Preview Audio</span>
+                                <span id="songAudioDurationText" class="font-mono text-[10px] text-slate-500"></span>
+                            </div>
+                            <audio id="songAudioPreviewPlayer" controls class="w-full h-9 rounded-lg"></audio>
+                        </div>
                     </div>
 
                     <div>
@@ -403,7 +434,9 @@
         </div>
     </main>
 
-    <!-- TAB 2: ARTISTS & SINGER PHOTO MANAGER -->
+    <!-- ========================================================================= -->
+    <!-- TAB 2: ARTISTS & SINGER PHOTO MANAGER                                     -->
+    <!-- ========================================================================= -->
     <main id="singersTab" class="hidden flex-1 max-w-7xl w-full mx-auto p-6 overflow-y-auto space-y-6">
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
@@ -427,10 +460,248 @@
         </div>
     </main>
 
+    <!-- ========================================================================= -->
+    <!-- TAB 3: REMIX SONGS MANAGER (remix-song-bucket)                            -->
+    <!-- ========================================================================= -->
+    <main id="remixTab" class="hidden flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-y-auto">
+
+        <!-- Left Column: Remix Bucket Config & Simplified Upload Form -->
+        <div class="lg:col-span-5 space-y-6">
+
+            <!-- Remix Bucket Config Card -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2 mb-4">
+                    <i class="fa-solid fa-database text-cyan-600"></i> Remix Bucket Configuration
+                </h2>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Remix Bucket Public Base URL</label>
+                        <input type="text" id="r2RemixBaseUrl" value="https://pub-7962060bafd44ced86cc5670ce22570d.r2.dev"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-cyan-500"
+                            onblur="this.value = this.value.trim()">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Account ID</label>
+                        <input type="text" id="r2RemixAccountId" placeholder="e.g., 32-character hex ID..."
+                            autocomplete="off" spellcheck="false"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-cyan-500"
+                            oninput="syncAccountIdInputs(this.value)"
+                            onblur="this.value = this.value.trim()">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Access Key ID</label>
+                            <input type="text" id="r2RemixAccessKey" placeholder="Paste Access Key ID"
+                                autocomplete="off" spellcheck="false"
+                                class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-cyan-500"
+                                oninput="syncAccessKeyInputs(this.value)"
+                                onblur="this.value = this.value.trim()">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Secret Access Key</label>
+                            <div class="relative">
+                                <input type="password" id="r2RemixSecretKey" placeholder="Paste Secret Key"
+                                    autocomplete="off" spellcheck="false"
+                                    class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 pr-9 text-xs text-slate-800 font-mono focus:outline-none focus:border-cyan-500"
+                                    oninput="syncSecretKeyInputs(this.value)"
+                                    onblur="this.value = this.value.trim()">
+                                <button type="button" onclick="toggleSecretKeyVisibility('r2RemixSecretKey', 'remixSecretKeyEyeIcon')"
+                                    class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none">
+                                    <i id="remixSecretKeyEyeIcon" class="fa-solid fa-eye-slash text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Remix Bucket Name</label>
+                        <input type="text" id="r2RemixBucketName" value="remix-song-bucket"
+                            autocomplete="off" spellcheck="false"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-cyan-500"
+                            onblur="this.value = this.value.trim()">
+                    </div>
+                    <button onclick="saveCredentials(); saveRemixCredentials();"
+                        class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-floppy-disk text-cyan-600"></i> Save All Credentials Locally
+                    </button>
+                </div>
+            </div>
+
+            <!-- Upload Remix Card (Only File, Title, Category) -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2 mb-4">
+                    <i class="fa-solid fa-compact-disc text-cyan-600"></i> Upload Remix Song
+                </h2>
+                <form id="remixForm" onsubmit="handleUploadRemix(event)" class="space-y-4">
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1.5">1. Select MP3 File (.mp3)</label>
+                        <label for="remixAudioFile"
+                            class="flex flex-col items-center justify-center w-full h-28 border-2 border-cyan-300 border-dashed rounded-xl cursor-pointer bg-cyan-50/50 hover:bg-cyan-50 transition">
+                            <div class="flex flex-col items-center justify-center pt-4 pb-4 px-4 text-center">
+                                <i class="fa-solid fa-file-audio text-cyan-600 text-2xl mb-1.5"></i>
+                                <p id="remixFileLabelText" class="text-xs text-slate-700 font-semibold mb-0.5">Click to browse or drop Remix MP3 here</p>
+                                <p class="text-[10px] text-slate-400">Auto-fills title from filename</p>
+                            </div>
+                            <input type="file" id="remixAudioFile" accept=".mp3,audio/mpeg" required class="hidden" onchange="handleRemixFileSelected(this)">
+                        </label>
+
+                        <!-- Remix Audio Preview Player -->
+                        <div id="remixAudioPreviewContainer" class="hidden mt-2.5 p-2.5 bg-cyan-50/70 border border-cyan-200 rounded-xl">
+                            <div class="flex items-center justify-between text-[11px] font-semibold text-cyan-700 mb-1.5">
+                                <span class="flex items-center gap-1.5"><i class="fa-solid fa-headphones"></i> Preview Remix Audio</span>
+                                <span id="remixAudioDurationText" class="font-mono text-[10px] text-slate-500"></span>
+                            </div>
+                            <audio id="remixAudioPreviewPlayer" controls class="w-full h-9 rounded-lg"></audio>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1.5">2. Song Title (ចំណងជើងបទភ្លេង)</label>
+                        <input type="text" id="remixTitleInput" required placeholder="Enter remix title..."
+                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-cyan-500"
+                            onblur="this.value = this.value.replace(/^\s+/, '').trim()">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1.5">3. Category (ប្រភេទភ្លេង)</label>
+                        <select id="remixCategoryInput"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-cyan-500 font-medium">
+                            <option value="Remix Club">Remix Club (បទញាក់ក្លឹប)</option>
+                            <option value="Bek Sloy">Bek Sloy (បទបែកស្លុយ)</option>
+                            <option value="Hip Hop Remix">Hip Hop Remix</option>
+                            <option value="Nonstop Remix">Nonstop Remix (ភ្លេងវែង)</option>
+                            <option value="TikTok Viral">TikTok Viral (ល្បីក្នុង TikTok)</option>
+                            <option value="Melody Remix">Melody Remix (ភ្លេងមនោសញ្ចេតនា)</option>
+                            <option value="3Cha Remix">3Cha Remix (ចង្វាក់ 3Cha)</option>
+                        </select>
+                    </div>
+
+                    <div id="remixUploadProgressContainer" class="hidden space-y-2 bg-cyan-50/70 p-3.5 rounded-xl border border-cyan-200">
+                        <div class="flex items-center justify-between text-xs font-semibold text-cyan-900">
+                            <span id="remixUploadProgressLabel" class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-spinner fa-spin text-cyan-600"></i> Uploading Remix to R2...
+                            </span>
+                            <span id="remixUploadProgressPercent" class="font-mono text-cyan-700 font-bold">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                            <div id="remixUploadProgressBar"
+                                class="bg-gradient-to-r from-cyan-500 to-teal-600 h-2.5 rounded-full transition-all duration-150 ease-out"
+                                style="width: 0%"></div>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-slate-500 font-mono">
+                            <span id="remixUploadBytesText">0 MB / 0 MB</span>
+                            <span id="remixUploadTimeSpeedText">-- KB/s • ETA: --s</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="uploadRemixBtn"
+                        class="w-full py-3 bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-cyan-600/20 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Upload Remix & Add to Catalog
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right Column: Remix Songs List & remixes.json Preview -->
+        <div class="lg:col-span-7 flex flex-col space-y-6">
+
+            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex-1 flex flex-col">
+
+                <div class="flex items-center justify-between gap-3 mb-3">
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-list-music text-cyan-600"></i> Remix Songs Catalog
+                            <span id="remixCountBadge" class="ml-1 text-xs px-2.5 py-0.5 rounded-full bg-cyan-100 text-cyan-700 border border-cyan-200 font-mono">0</span>
+                        </h2>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button onclick="clearAllRemixes()" class="text-xs text-rose-600 hover:text-rose-700 transition flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-rose-50 border border-rose-200">
+                            <i class="fa-solid fa-trash-can"></i> Clear All
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="filterRemixTitleInput" placeholder="Filter remix title..." oninput="applyAllRemixFilters()"
+                            class="w-full bg-white border border-slate-300 rounded-lg pl-8 pr-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-cyan-500">
+                    </div>
+
+                    <div>
+                        <select id="filterRemixCategorySelect" onchange="applyAllRemixFilters()" class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-cyan-500">
+                            <option value="">All Categories</option>
+                            <option value="Remix Club">Remix Club</option>
+                            <option value="Bek Sloy">Bek Sloy</option>
+                            <option value="Hip Hop Remix">Hip Hop Remix</option>
+                            <option value="Nonstop Remix">Nonstop Remix</option>
+                            <option value="TikTok Viral">TikTok Viral</option>
+                            <option value="Melody Remix">Melody Remix</option>
+                            <option value="3Cha Remix">3Cha Remix</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <select id="filterRemixSizeSelect" onchange="applyAllRemixFilters()" class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-cyan-500">
+                            <option value="">All Sizes</option>
+                            <option value="small">&lt; 5 MB</option>
+                            <option value="medium">5 – 15 MB</option>
+                            <option value="large">&gt; 15 MB</option>
+                            <option value="sort_desc">Sort: Largest first</option>
+                            <option value="sort_asc">Sort: Smallest first</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-x-auto rounded-xl border border-slate-200 bg-slate-50 min-h-[380px]">
+                    <table class="w-full text-left text-sm text-slate-700">
+                        <thead class="bg-slate-100 text-xs uppercase text-slate-500 sticky top-0 border-b border-slate-200">
+                            <tr>
+                                <th scope="col" class="px-4 py-3">Title</th>
+                                <th scope="col" class="px-4 py-3">Category</th>
+                                <th scope="col" class="px-4 py-3">Size</th>
+                                <th scope="col" class="px-4 py-3">File Name</th>
+                                <th scope="col" class="px-4 py-3 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="remixTableBody" class="divide-y divide-slate-200"></tbody>
+                    </table>
+                </div>
+
+                <div class="flex items-center justify-between pt-3 border-t border-slate-100 mt-2 text-xs text-slate-500">
+                    <span id="remixPageInfoText">Showing 0 of 0</span>
+                    <div class="flex items-center gap-1">
+                        <button onclick="changeRemixPage(-1)" id="remixPrevPageBtn" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">
+                            <i class="fa-solid fa-chevron-left"></i> Prev
+                        </button>
+                        <span id="remixPageBadge" class="px-2 font-mono font-medium text-slate-700">1</span>
+                        <button onclick="changeRemixPage(1)" id="remixNextPageBtn" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">
+                            Next <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-code text-cyan-600"></i> Live <code class="text-cyan-600 font-mono text-sm">remixes.json</code> Preview
+                    </h2>
+                    <div id="remixStatusMessage" class="text-xs font-medium text-emerald-600"></div>
+                </div>
+                <div class="relative">
+                    <pre id="remixJsonPreview" class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-xs font-mono text-cyan-300 h-36 overflow-y-auto selection:bg-cyan-500 selection:text-white">[]</pre>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
     <!-- Hidden File Input for Direct Singer Photo Upload -->
     <input type="file" id="directSingerPhotoInput" accept="image/*" class="hidden" onchange="handleDirectSingerPhotoSelected(this)">
 
-    <!-- Modal Dialog: Edit Song Details -->
+    <!-- Modal Dialog: Edit Main Song Details -->
     <div id="editSongModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 transform transition-all">
             <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
@@ -485,19 +756,78 @@
         </div>
     </div>
 
+    <!-- Modal Dialog: Edit Remix Details -->
+    <div id="editRemixModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 transform transition-all">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
+                <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-cyan-600"></i> Edit Remix Details
+                </h3>
+                <button onclick="closeEditRemixModal()" class="text-slate-400 hover:text-slate-600 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="editRemixForm" onsubmit="saveEditedRemix(event)" class="space-y-4">
+                <input type="hidden" id="editRemixIndex">
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Song Title (ចំណងជើង)</label>
+                    <input type="text" id="editRemixTitleInput" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-cyan-500" onblur="this.value = this.value.replace(/^\s+/, '').trim()">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Category (ប្រភេទភ្លេង)</label>
+                    <select id="editRemixCategorySelect" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-cyan-500 font-medium">
+                        <option value="Remix Club">Remix Club (បទញាក់ក្លឹប)</option>
+                        <option value="Bek Sloy">Bek Sloy (បទបែកស្លុយ)</option>
+                        <option value="Hip Hop Remix">Hip Hop Remix</option>
+                        <option value="Nonstop Remix">Nonstop Remix (ភ្លេងវែង)</option>
+                        <option value="TikTok Viral">TikTok Viral (ល្បីក្នុង TikTok)</option>
+                        <option value="Melody Remix">Melody Remix (ភ្លេងមនោសញ្ចេតនា)</option>
+                        <option value="3Cha Remix">3Cha Remix (ចង្វាក់ 3Cha)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-500 mb-1">File Name (Fixed)</label>
+                    <input type="text" id="editRemixUrlInput" disabled class="w-full bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-500 font-mono cursor-not-allowed">
+                </div>
+
+                <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeEditRemixModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-cyan-600/20 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-check"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
+        // Main Songs State
         let songsCatalog = [];
         let filteredCatalog = [];
         let r2BucketFolders = [];
         let uploadedImageFile = null;
         let selectedSingerForDirectUpload = null;
-
         let currentPage = 1;
+        let songPreviewObjectUrl = null;
+
+        // Remix Songs State
+        let remixCatalog = [];
+        let filteredRemixCatalog = [];
+        let currentRemixPage = 1;
+        let remixPreviewObjectUrl = null;
+
         const pageSize = 10;
 
         window.addEventListener('DOMContentLoaded', () => {
             loadCredentials();
             syncCatalogFromR2();
+            syncRemixCatalogFromR2();
 
             document.addEventListener('click', (e) => {
                 if (!e.target.closest('#songSinger') && !e.target.closest('#singerDropdownMenu')) {
@@ -509,26 +839,189 @@
             });
         });
 
+        // =========================================================================
+        // NAVIGATION TAB SWITCHING
+        // =========================================================================
         function switchTab(tabId) {
             const songsTab = document.getElementById('songsTab');
             const singersTab = document.getElementById('singersTab');
+            const remixTab = document.getElementById('remixTab');
+
             const btnSongs = document.getElementById('tabBtnSongs');
             const btnSingers = document.getElementById('tabBtnSingers');
+            const btnRemix = document.getElementById('tabBtnRemix');
+
+            const mainActions = document.getElementById('mainHeaderActions');
+            const remixActions = document.getElementById('remixHeaderActions');
+            const subtitle = document.getElementById('headerSubtitle');
+            const brandIcon = document.getElementById('headerBrandIcon');
+
+            const activeBrandStyle = "px-4 py-1.5 rounded-lg text-xs font-semibold bg-white text-brand-700 shadow-sm transition flex items-center gap-2";
+            const activeRemixStyle = "px-4 py-1.5 rounded-lg text-xs font-semibold bg-white text-cyan-700 shadow-sm transition flex items-center gap-2";
+            const inactiveStyle = "px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition flex items-center gap-2";
+
+            songsTab.classList.add('hidden');
+            singersTab.classList.add('hidden');
+            remixTab.classList.add('hidden');
+
+            btnSongs.className = inactiveStyle;
+            btnSingers.className = inactiveStyle;
+            btnRemix.className = inactiveStyle;
 
             if (tabId === 'singersTab') {
-                songsTab.classList.add('hidden');
                 singersTab.classList.remove('hidden');
-                btnSingers.className = "px-4 py-1.5 rounded-lg text-xs font-semibold bg-white text-brand-700 shadow-sm transition flex items-center gap-2";
-                btnSongs.className = "px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition flex items-center gap-2";
+                btnSingers.className = activeBrandStyle;
+                mainActions.classList.remove('hidden');
+                remixActions.classList.add('hidden');
+                brandIcon.className = "bg-brand-600 text-white p-2.5 rounded-xl shadow-lg shadow-brand-600/20 flex items-center justify-center transition-colors";
+                subtitle.innerHTML = 'Manage MP3s, artist photos & publish <code class="text-brand-600 font-mono font-semibold">songs.json</code>';
                 renderSingersManager();
+            } else if (tabId === 'remixTab') {
+                remixTab.classList.remove('hidden');
+                btnRemix.className = activeRemixStyle;
+                mainActions.classList.add('hidden');
+                remixActions.classList.remove('hidden');
+                brandIcon.className = "bg-cyan-600 text-white p-2.5 rounded-xl shadow-lg shadow-cyan-600/20 flex items-center justify-center transition-colors";
+                subtitle.innerHTML = 'Manage Remix tracks in <code class="text-cyan-600 font-mono font-semibold">remix-song-bucket</code> & publish <code class="text-cyan-600 font-mono font-semibold">remixes.json</code>';
+                renderRemixTable();
             } else {
-                singersTab.classList.add('hidden');
                 songsTab.classList.remove('hidden');
-                btnSongs.className = "px-4 py-1.5 rounded-lg text-xs font-semibold bg-white text-brand-700 shadow-sm transition flex items-center gap-2";
-                btnSingers.className = "px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition flex items-center gap-2";
+                btnSongs.className = activeBrandStyle;
+                mainActions.classList.remove('hidden');
+                remixActions.classList.add('hidden');
+                brandIcon.className = "bg-brand-600 text-white p-2.5 rounded-xl shadow-lg shadow-brand-600/20 flex items-center justify-center transition-colors";
+                subtitle.innerHTML = 'Manage MP3s, artist photos & publish <code class="text-brand-600 font-mono font-semibold">songs.json</code>';
             }
         }
 
+        // =========================================================================
+        // SHARED R2 CREDENTIALS & S3 HELPERS
+        // =========================================================================
+        function syncAccountIdInputs(val) {
+            document.getElementById('r2AccountId').value = val;
+            document.getElementById('r2RemixAccountId').value = val;
+        }
+
+        function syncAccessKeyInputs(val) {
+            document.getElementById('r2AccessKey').value = val;
+            document.getElementById('r2RemixAccessKey').value = val;
+        }
+
+        function syncSecretKeyInputs(val) {
+            document.getElementById('r2SecretKey').value = val;
+            document.getElementById('r2RemixSecretKey').value = val;
+        }
+
+        function saveCredentials() {
+            const baseUrl = document.getElementById('r2BaseUrl').value.trim();
+            const accountId = (document.getElementById('r2AccountId').value || document.getElementById('r2RemixAccountId').value).trim();
+            const accessKey = (document.getElementById('r2AccessKey').value || document.getElementById('r2RemixAccessKey').value).trim();
+            const secretKey = (document.getElementById('r2SecretKey').value || document.getElementById('r2RemixSecretKey').value).trim();
+            const bucketName = document.getElementById('r2BucketName').value.trim();
+
+            syncAccountIdInputs(accountId);
+            syncAccessKeyInputs(accessKey);
+            syncSecretKeyInputs(secretKey);
+
+            localStorage.setItem('r2_base_url', baseUrl);
+            localStorage.setItem('r2_account_id', accountId);
+            localStorage.setItem('r2_access_key', accessKey);
+            localStorage.setItem('r2_secret_key', secretKey);
+            localStorage.setItem('r2_bucket_name', bucketName);
+
+            showStatus('Credentials saved locally!', 'emerald');
+            loadBucketLiveFolders();
+        }
+
+        function saveRemixCredentials() {
+            const remixBaseUrl = document.getElementById('r2RemixBaseUrl').value.trim();
+            const remixBucketName = document.getElementById('r2RemixBucketName').value.trim();
+
+            localStorage.setItem('r2_remix_base_url', remixBaseUrl);
+            localStorage.setItem('r2_remix_bucket_name', remixBucketName);
+
+            showRemixStatus('All credentials & remix bucket settings saved!', 'emerald');
+            syncRemixCatalogFromR2();
+        }
+
+        function loadCredentials() {
+            if (localStorage.getItem('r2_base_url')) {
+                document.getElementById('r2BaseUrl').value = localStorage.getItem('r2_base_url').trim();
+            }
+            if (localStorage.getItem('r2_account_id')) {
+                syncAccountIdInputs(localStorage.getItem('r2_account_id').trim());
+            }
+            if (localStorage.getItem('r2_access_key')) {
+                syncAccessKeyInputs(localStorage.getItem('r2_access_key').trim());
+            }
+            if (localStorage.getItem('r2_secret_key')) {
+                syncSecretKeyInputs(localStorage.getItem('r2_secret_key').trim());
+            }
+            if (localStorage.getItem('r2_bucket_name')) {
+                document.getElementById('r2BucketName').value = localStorage.getItem('r2_bucket_name').trim();
+            }
+            if (localStorage.getItem('r2_remix_base_url')) {
+                document.getElementById('r2RemixBaseUrl').value = localStorage.getItem('r2_remix_base_url').trim();
+            }
+            if (localStorage.getItem('r2_remix_bucket_name')) {
+                document.getElementById('r2RemixBucketName').value = localStorage.getItem('r2_remix_bucket_name').trim();
+            }
+        }
+
+        function getS3Client() {
+            const accountId = (document.getElementById('r2AccountId').value || document.getElementById('r2RemixAccountId').value).trim();
+            const accessKeyId = (document.getElementById('r2AccessKey').value || document.getElementById('r2RemixAccessKey').value).trim();
+            const secretAccessKey = (document.getElementById('r2SecretKey').value || document.getElementById('r2RemixSecretKey').value).trim();
+
+            if (!accountId || !accessKeyId || !secretAccessKey) {
+                return null;
+            }
+
+            AWS.config.update({
+                accessKeyId: accessKeyId,
+                secretAccessKey: secretAccessKey,
+                region: 'us-east-1'
+            });
+
+            return new AWS.S3({
+                endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+                signatureVersion: 'v4',
+                s3ForcePathStyle: true
+            });
+        }
+
+        function toggleSecretKeyVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === 'text') {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye-slash text-xs';
+            } else {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye text-xs';
+            }
+        }
+
+        function cleanString(str) {
+            if (!str) return '';
+            return str
+                .replace(/^\s+/, '')
+                .replace(/\.mp3$/i, '')
+                .replace(/["'`«»„“”‘’]/g, '')
+                .replace(/[,]/g, '')
+                .trim();
+        }
+
+        function formatBytes(bytes) {
+            if (!bytes || isNaN(bytes) || bytes <= 0) return '--';
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(1024));
+            return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + sizes[i];
+        }
+
+        // =========================================================================
+        // TAB 1 & TAB 2: MAIN SONGS & ARTIST PHOTO MANAGER
+        // =========================================================================
         function triggerDirectSingerUpload(singerName) {
             selectedSingerForDirectUpload = singerName;
             const input = document.getElementById('directSingerPhotoInput');
@@ -694,18 +1187,6 @@
             });
         }
 
-        function toggleSecretKeyVisibility() {
-            const input = document.getElementById('r2SecretKey');
-            const icon = document.getElementById('secretKeyEyeIcon');
-            if (input.type === 'text') {
-                input.type = 'password';
-                icon.className = 'fa-solid fa-eye-slash text-xs';
-            } else {
-                input.type = 'text';
-                icon.className = 'fa-solid fa-eye text-xs';
-            }
-        }
-
         function normalizeKhmer(str) {
             if (!str) return '';
             let s = str
@@ -718,16 +1199,6 @@
                 return 'ស៊ីន ស៊ីសាមុត';
             }
             return s;
-        }
-
-        function cleanString(str) {
-            if (!str) return '';
-            return str
-                .replace(/^\s+/, '')
-                .replace(/\.mp3$/i, '')
-                .replace(/["'`«»„“”‘’]/g, '')
-                .replace(/[,]/g, '')
-                .trim();
         }
 
         function getKhmerRootKey(str) {
@@ -820,13 +1291,6 @@
             return result.sort((a, b) => a.localeCompare(b, 'km'));
         }
 
-        function formatBytes(bytes) {
-            if (!bytes || isNaN(bytes) || bytes <= 0) return '--';
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(1024));
-            return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + sizes[i];
-        }
-
         function handleImageError(img) {
             img.src = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500';
             const status = document.getElementById('imagePreviewStatus');
@@ -914,12 +1378,44 @@
             updateSingerImageUrl(name);
         }
 
+        function resetSongAudioPreview() {
+            const container = document.getElementById('songAudioPreviewContainer');
+            const player = document.getElementById('songAudioPreviewPlayer');
+            if (player) {
+                player.pause();
+                player.removeAttribute('src');
+                player.load();
+            }
+            if (songPreviewObjectUrl) {
+                URL.revokeObjectURL(songPreviewObjectUrl);
+                songPreviewObjectUrl = null;
+            }
+            if (container) container.classList.add('hidden');
+        }
+
         function handleFileSelected(input) {
             const label = document.getElementById('fileLabelText');
+            const previewContainer = document.getElementById('songAudioPreviewContainer');
+            const previewPlayer = document.getElementById('songAudioPreviewPlayer');
+            const durationText = document.getElementById('songAudioDurationText');
+
             if (input.files && input.files[0]) {
                 const file = input.files[0];
                 label.textContent = `Selected: ${file.name} (${formatBytes(file.size)})`;
                 label.className = "text-xs text-brand-700 font-bold mb-0.5 truncate max-w-xs";
+
+                // Load audio into preview player
+                if (songPreviewObjectUrl) URL.revokeObjectURL(songPreviewObjectUrl);
+                songPreviewObjectUrl = URL.createObjectURL(file);
+                previewPlayer.src = songPreviewObjectUrl;
+                previewContainer.classList.remove('hidden');
+                durationText.textContent = '';
+
+                previewPlayer.onloadedmetadata = () => {
+                    const mins = Math.floor(previewPlayer.duration / 60);
+                    const secs = Math.floor(previewPlayer.duration % 60).toString().padStart(2, '0');
+                    durationText.textContent = `${mins}:${secs}`;
+                };
 
                 let baseName = file.name.replace(/\.[^/.]+$/, "");
                 let title = baseName;
@@ -947,6 +1443,7 @@
             } else {
                 label.textContent = "Click to browse or drop MP3 file here";
                 label.className = "text-xs text-slate-700 font-semibold mb-0.5";
+                resetSongAudioPreview();
             }
         }
 
@@ -961,53 +1458,6 @@
                 document.getElementById('imagePreviewUrlText').textContent = uploadedImageFile.name;
                 showStatus('Image file ready for upload!', 'emerald');
             }
-        }
-
-        function saveCredentials() {
-            const baseUrl = document.getElementById('r2BaseUrl').value.trim();
-            const accountId = document.getElementById('r2AccountId').value.trim();
-            const accessKey = document.getElementById('r2AccessKey').value.trim();
-            const secretKey = document.getElementById('r2SecretKey').value.trim();
-            const bucketName = document.getElementById('r2BucketName').value.trim();
-
-            localStorage.setItem('r2_base_url', baseUrl);
-            localStorage.setItem('r2_account_id', accountId);
-            localStorage.setItem('r2_access_key', accessKey);
-            localStorage.setItem('r2_secret_key', secretKey);
-            localStorage.setItem('r2_bucket_name', bucketName);
-
-            showStatus('Credentials saved locally!', 'emerald');
-            loadBucketLiveFolders();
-        }
-
-        function loadCredentials() {
-            if (localStorage.getItem('r2_base_url')) document.getElementById('r2BaseUrl').value = localStorage.getItem('r2_base_url').trim();
-            if (localStorage.getItem('r2_account_id')) document.getElementById('r2AccountId').value = localStorage.getItem('r2_account_id').trim();
-            if (localStorage.getItem('r2_access_key')) document.getElementById('r2AccessKey').value = localStorage.getItem('r2_access_key').trim();
-            if (localStorage.getItem('r2_secret_key')) document.getElementById('r2SecretKey').value = localStorage.getItem('r2_secret_key').trim();
-            if (localStorage.getItem('r2_bucket_name')) document.getElementById('r2BucketName').value = localStorage.getItem('r2_bucket_name').trim();
-        }
-
-        function getS3Client() {
-            const accountId = document.getElementById('r2AccountId').value.trim();
-            const accessKeyId = document.getElementById('r2AccessKey').value.trim();
-            const secretAccessKey = document.getElementById('r2SecretKey').value.trim();
-
-            if (!accountId || !accessKeyId || !secretAccessKey) {
-                return null;
-            }
-
-            AWS.config.update({
-                accessKeyId: accessKeyId,
-                secretAccessKey: secretAccessKey,
-                region: 'us-east-1'
-            });
-
-            return new AWS.S3({
-                endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-                signatureVersion: 'v4',
-                s3ForcePathStyle: true
-            });
         }
 
         async function loadBucketLiveFolders() {
@@ -1347,7 +1797,6 @@
                     const cleanTarget = normalizeKhmer(folder).toLowerCase();
                     const cleanSingerTarget = normalizeKhmer(singer).toLowerCase();
 
-                    // Check if an existing song for this artist already has a profile image URL
                     const existingSongWithImg = songsCatalog.find(s =>
                         s.image && !s.image.includes('unsplash.com') && (
                             (s.singer && (normalizeKhmer(s.singer).toLowerCase() === cleanTarget || normalizeKhmer(s.singer).toLowerCase() === cleanSingerTarget)) ||
@@ -1358,9 +1807,8 @@
                     if (existingSongWithImg && existingSongWithImg.image) {
                         image = existingSongWithImg.image;
                     } else if (image && image.startsWith('http')) {
-                        // Keep the image field already populated in the form
+                        // Keep form URL
                     } else {
-                        // Check if file exists in R2 or create placeholder
                         let profileExists = false;
                         try {
                             await s3.headObject({
@@ -1435,6 +1883,7 @@
                 applyAllFilters();
 
                 fileInput.value = '';
+                resetSongAudioPreview();
                 document.getElementById('fileLabelText').textContent = 'Click to browse or drop MP3 file here';
                 document.getElementById('fileLabelText').className = "text-xs text-slate-700 font-semibold mb-0.5";
                 document.getElementById('songTitle').value = '';
@@ -1459,7 +1908,6 @@
             const s3 = getS3Client();
             if (!s3) return;
 
-            // Safety guard: prevent overwriting R2 with an empty catalog
             if (songsCatalog.length === 0) {
                 const confirmEmpty = confirm("⚠️ Warning: Your songs catalog is currently 0. Publishing will wipe out all songs from your mobile app. Are you sure you want to proceed?");
                 if (!confirmEmpty) return;
@@ -1693,6 +2141,535 @@
 
         function showStatus(msg, color) {
             const el = document.getElementById('statusMessage');
+            el.textContent = msg;
+            el.className = `text-xs font-medium text-${color}-600`;
+        }
+
+        // =========================================================================
+        // TAB 3: REMIX SONGS MANAGER (remix-song-bucket)
+        // =========================================================================
+        function resetRemixAudioPreview() {
+            const container = document.getElementById('remixAudioPreviewContainer');
+            const player = document.getElementById('remixAudioPreviewPlayer');
+            if (player) {
+                player.pause();
+                player.removeAttribute('src');
+                player.load();
+            }
+            if (remixPreviewObjectUrl) {
+                URL.revokeObjectURL(remixPreviewObjectUrl);
+                remixPreviewObjectUrl = null;
+            }
+            if (container) container.classList.add('hidden');
+        }
+
+        function handleRemixFileSelected(input) {
+            const label = document.getElementById('remixFileLabelText');
+            const previewContainer = document.getElementById('remixAudioPreviewContainer');
+            const previewPlayer = document.getElementById('remixAudioPreviewPlayer');
+            const durationText = document.getElementById('remixAudioDurationText');
+
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                label.textContent = `Selected: ${file.name} (${formatBytes(file.size)})`;
+                label.className = "text-xs text-cyan-700 font-bold mb-0.5 truncate max-w-xs";
+
+                // Load remix audio into preview player
+                if (remixPreviewObjectUrl) URL.revokeObjectURL(remixPreviewObjectUrl);
+                remixPreviewObjectUrl = URL.createObjectURL(file);
+                previewPlayer.src = remixPreviewObjectUrl;
+                previewContainer.classList.remove('hidden');
+                durationText.textContent = '';
+
+                previewPlayer.onloadedmetadata = () => {
+                    const mins = Math.floor(previewPlayer.duration / 60);
+                    const secs = Math.floor(previewPlayer.duration % 60).toString().padStart(2, '0');
+                    durationText.textContent = `${mins}:${secs}`;
+                };
+
+                const baseName = file.name.replace(/\.[^/.]+$/, "");
+                document.getElementById('remixTitleInput').value = cleanString(baseName);
+            } else {
+                label.textContent = "Click to browse or drop Remix MP3 here";
+                label.className = "text-xs text-slate-700 font-semibold mb-0.5";
+                resetRemixAudioPreview();
+            }
+        }
+
+        async function fetchMissingRemixSizes() {
+            const s3 = getS3Client();
+            const bucketName = document.getElementById('r2RemixBucketName').value.trim();
+
+            const missing = remixCatalog.filter(s => !s.size || s.size <= 0);
+            if (missing.length === 0) {
+                showRemixStatus('All remix tracks already have file sizes!', 'emerald');
+                return;
+            }
+
+            if (!s3) {
+                alert('Please configure your R2 Access Key and Secret Key first.');
+                return;
+            }
+
+            showRemixStatus(`Fetching sizes for ${missing.length} remix tracks...`, 'blue');
+            let updatedCount = 0;
+
+            try {
+                let continuationToken = null;
+                const r2ObjectsMap = new Map();
+
+                do {
+                    const res = await s3.listObjectsV2({
+                        Bucket: bucketName,
+                        ContinuationToken: continuationToken
+                    }).promise();
+
+                    if (res && res.Contents) {
+                        res.Contents.forEach(obj => {
+                            r2ObjectsMap.set(obj.Key, obj.Size);
+                            r2ObjectsMap.set(decodeURIComponent(obj.Key), obj.Size);
+                        });
+                    }
+                    continuationToken = res.IsTruncated ? res.NextContinuationToken : null;
+                } while (continuationToken);
+
+                for (let song of missing) {
+                    const rawKey = song.url.startsWith('http')
+                        ? song.url.split('.dev/').pop()
+                        : song.url;
+                    const decodedKey = decodeURIComponent(rawKey);
+
+                    if (r2ObjectsMap.has(rawKey)) {
+                        song.size = r2ObjectsMap.get(rawKey);
+                        updatedCount++;
+                    } else if (r2ObjectsMap.has(decodedKey)) {
+                        song.size = r2ObjectsMap.get(decodedKey);
+                        updatedCount++;
+                    }
+                }
+            } catch (err) {
+                alert('Error scanning remix bucket: ' + err.message);
+            }
+
+            applyAllRemixFilters();
+            showRemixStatus(`Retrieved sizes for ${updatedCount} tracks! Click 'Publish Remixes' to save.`, 'emerald');
+        }
+
+        async function syncRemixCatalogFromR2() {
+            const baseUrl = document.getElementById('r2RemixBaseUrl').value.trim().replace(/\/+$/, '');
+            const s3 = getS3Client();
+            const bucketName = document.getElementById('r2RemixBucketName').value.trim();
+
+            showRemixStatus('Syncing remixes.json from R2...', 'blue');
+
+            if (baseUrl) {
+                try {
+                    const response = await fetch(`${baseUrl}/remixes.json?t=${Date.now()}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (Array.isArray(data)) {
+                            remixCatalog = data;
+                            applyAllRemixFilters();
+                            showRemixStatus('Successfully synced remixes.json from R2!', 'emerald');
+                            return;
+                        }
+                    }
+                } catch (err) {
+                    console.log('Public URL fetch skipped, trying S3 API...', err);
+                }
+            }
+
+            if (s3) {
+                try {
+                    const obj = await s3.getObject({
+                        Bucket: bucketName,
+                        Key: 'remixes.json'
+                    }).promise();
+                    const data = JSON.parse(obj.Body.toString('utf-8'));
+                    if (Array.isArray(data)) {
+                        remixCatalog = data;
+                        applyAllRemixFilters();
+                        showRemixStatus('Synced remixes.json via S3 API!', 'emerald');
+                        return;
+                    }
+                } catch (s3Err) {
+                    showRemixStatus('No remixes.json found yet. Ready for first upload!', 'slate');
+                }
+            } else {
+                showRemixStatus('Enter your Remix Public URL or Access Keys to sync.', 'slate');
+            }
+        }
+
+        function applyAllRemixFilters() {
+            const titleQuery = (document.getElementById('filterRemixTitleInput')?.value || '').trim().toLowerCase();
+            const categoryQuery = (document.getElementById('filterRemixCategorySelect')?.value || '').trim().toLowerCase();
+            const sizeOption = document.getElementById('filterRemixSizeSelect')?.value || '';
+
+            filteredRemixCatalog = remixCatalog.filter(song => {
+                if (titleQuery && !song.title.toLowerCase().includes(titleQuery)) {
+                    return false;
+                }
+                if (categoryQuery && (!song.category || !song.category.toLowerCase().includes(categoryQuery))) {
+                    return false;
+                }
+
+                const bytes = Number(song.size) || 0;
+                if (sizeOption === 'small' && bytes >= 5 * 1024 * 1024) return false;
+                if (sizeOption === 'medium' && (bytes < 5 * 1024 * 1024 || bytes > 15 * 1024 * 1024)) return false;
+                if (sizeOption === 'large' && bytes <= 15 * 1024 * 1024) return false;
+
+                return true;
+            });
+
+            if (sizeOption === 'sort_desc') {
+                filteredRemixCatalog.sort((a, b) => (Number(b.size) || 0) - (Number(a.size) || 0));
+            } else if (sizeOption === 'sort_asc') {
+                filteredRemixCatalog.sort((a, b) => (Number(a.size) || 0) - (Number(b.size) || 0));
+            }
+
+            currentRemixPage = 1;
+            renderRemixTable();
+        }
+
+        function changeRemixPage(direction) {
+            const maxPage = Math.ceil(filteredRemixCatalog.length / pageSize) || 1;
+            currentRemixPage = Math.max(1, Math.min(currentRemixPage + direction, maxPage));
+            renderRemixTable();
+        }
+
+        async function handleUploadRemix(e) {
+            e.preventDefault();
+
+            const title = cleanString(document.getElementById('remixTitleInput').value);
+            const category = document.getElementById('remixCategoryInput').value;
+            const fileInput = document.getElementById('remixAudioFile');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Please select an MP3 file to upload.');
+                return;
+            }
+
+            const titleExists = remixCatalog.some(song =>
+                song.title.toLowerCase() === title.toLowerCase()
+            );
+
+            if (titleExists) {
+                alert(`⚠️ Upload Blocked: The title "${title}" already exists in your remix catalog!`);
+                return;
+            }
+
+            const s3 = getS3Client();
+            if (!s3) {
+                alert('Please enter your Cloudflare R2 Account ID, Access Key ID, and Secret Access Key first.');
+                return;
+            }
+
+            const bucketName = document.getElementById('r2RemixBucketName').value.trim();
+
+            const uploadBtn = document.getElementById('uploadRemixBtn');
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Uploading to R2...`;
+
+            const progressContainer = document.getElementById('remixUploadProgressContainer');
+            const progressBar = document.getElementById('remixUploadProgressBar');
+            const progressPercent = document.getElementById('remixUploadProgressPercent');
+            const bytesText = document.getElementById('remixUploadBytesText');
+            const timeSpeedText = document.getElementById('remixUploadTimeSpeedText');
+
+            progressContainer.classList.remove('hidden');
+            progressBar.style.width = '0%';
+            progressPercent.textContent = '0%';
+            bytesText.textContent = `0 MB / ${formatBytes(file.size)}`;
+            timeSpeedText.textContent = 'Starting...';
+
+            const startTime = Date.now();
+
+            try {
+                // Store directly at root of remix-song-bucket
+                const filename = file.name;
+
+                const uploadManaged = s3.upload({
+                    Bucket: bucketName,
+                    Key: filename,
+                    Body: file,
+                    ContentType: file.type || 'audio/mpeg'
+                });
+
+                uploadManaged.on('httpUploadProgress', (progress) => {
+                    const loaded = progress.loaded;
+                    const total = progress.total || file.size;
+                    const percent = Math.min(100, Math.round((loaded / total) * 100));
+
+                    progressBar.style.width = `${percent}%`;
+                    progressPercent.textContent = `${percent}%`;
+                    bytesText.textContent = `${formatBytes(loaded)} / ${formatBytes(total)}`;
+
+                    const elapsedSec = (Date.now() - startTime) / 1000;
+                    if (elapsedSec > 0.2) {
+                        const speedBps = loaded / elapsedSec;
+                        const remainingBytes = Math.max(0, total - loaded);
+                        const remainingSec = Math.round(remainingBytes / speedBps);
+                        timeSpeedText.textContent = `${formatBytes(speedBps)}/s • ETA: ${remainingSec}s`;
+                    }
+                });
+
+                await uploadManaged.promise();
+
+                // Clean minimal schema: title, category, url (filename), size
+                const newRemix = {
+                    title: title,
+                    category: category,
+                    url: filename,
+                    size: file.size
+                };
+
+                remixCatalog.unshift(newRemix);
+                applyAllRemixFilters();
+
+                // Reset form
+                fileInput.value = '';
+                resetRemixAudioPreview();
+                document.getElementById('remixFileLabelText').textContent = 'Click to browse or drop Remix MP3 here';
+                document.getElementById('remixFileLabelText').className = "text-xs text-slate-700 font-semibold mb-0.5";
+                document.getElementById('remixTitleInput').value = '';
+
+                showRemixStatus('Remix uploaded! Click "Publish Remixes" to save live catalog.', 'emerald');
+            } catch (err) {
+                alert('R2 Upload Failed: ' + err.message);
+                showRemixStatus('Upload failed!', 'rose');
+            } finally {
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Upload Remix & Add to Catalog`;
+                setTimeout(() => {
+                    progressContainer.classList.add('hidden');
+                }, 2500);
+            }
+        }
+
+        async function publishRemixCatalogToR2() {
+            const s3 = getS3Client();
+            if (!s3) {
+                alert('Please enter your Cloudflare R2 credentials first.');
+                return;
+            }
+
+            if (remixCatalog.length === 0) {
+                const confirmEmpty = confirm("⚠️ Warning: Your remix catalog is empty (0 tracks). Are you sure you want to publish an empty remixes.json?");
+                if (!confirmEmpty) return;
+            }
+
+            const bucketName = document.getElementById('r2RemixBucketName').value.trim();
+            const publishBtn = document.getElementById('publishRemixBtn');
+            publishBtn.disabled = true;
+            publishBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Publishing...`;
+
+            const jsonString = JSON.stringify(remixCatalog, null, 2);
+
+            s3.upload({
+                Bucket: bucketName,
+                Key: 'remixes.json',
+                Body: jsonString,
+                ContentType: 'application/json'
+            }, function (err, data) {
+                publishBtn.disabled = false;
+                publishBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Publish Remixes`;
+
+                if (err) {
+                    alert('Failed to publish remixes.json: ' + err.message);
+                    showRemixStatus('Publish failed!', 'rose');
+                    return;
+                }
+
+                showRemixStatus('remixes.json published to remix-song-bucket!', 'emerald');
+                alert('Success! remixes.json published to Cloudflare R2.');
+            });
+        }
+
+        function openEditRemixModal(indexInFiltered) {
+            const song = filteredRemixCatalog[indexInFiltered];
+            if (!song) return;
+
+            const originalIndex = remixCatalog.indexOf(song);
+            if (originalIndex === -1) return;
+
+            document.getElementById('editRemixIndex').value = originalIndex;
+            document.getElementById('editRemixTitleInput').value = song.title || '';
+            document.getElementById('editRemixCategorySelect').value = song.category || 'Remix Club';
+            document.getElementById('editRemixUrlInput').value = decodeURIComponent(song.url || '');
+
+            document.getElementById('editRemixModal').classList.remove('hidden');
+        }
+
+        function closeEditRemixModal() {
+            document.getElementById('editRemixModal').classList.add('hidden');
+        }
+
+        function saveEditedRemix(e) {
+            e.preventDefault();
+
+            const idx = parseInt(document.getElementById('editRemixIndex').value, 10);
+            if (isNaN(idx) || idx < 0 || idx >= remixCatalog.length) return;
+
+            const newTitle = cleanString(document.getElementById('editRemixTitleInput').value);
+            const newCategory = document.getElementById('editRemixCategorySelect').value;
+
+            if (!newTitle) {
+                alert('Please enter a valid song title.');
+                return;
+            }
+
+            const isDuplicate = remixCatalog.some((s, i) => 
+                i !== idx && s.title.toLowerCase() === newTitle.toLowerCase()
+            );
+
+            if (isDuplicate) {
+                alert(`The title "${newTitle}" is already used by another remix track!`);
+                return;
+            }
+
+            remixCatalog[idx].title = newTitle;
+            remixCatalog[idx].category = newCategory;
+
+            closeEditRemixModal();
+            applyAllRemixFilters();
+
+            showRemixStatus('Metadata updated! Click "Publish Remixes" to save live catalog.', 'emerald');
+        }
+
+        async function deleteRemix(indexInFiltered) {
+            const song = filteredRemixCatalog[indexInFiltered];
+            if (!song) return;
+
+            if (!confirm(`Are you sure you want to delete "${song.title}" from remix-song-bucket?`)) {
+                return;
+            }
+
+            const s3 = getS3Client();
+            if (!s3) return;
+
+            const bucketName = document.getElementById('r2RemixBucketName').value.trim();
+            const r2Path = song.url.startsWith('http')
+                ? decodeURIComponent(song.url.split('.dev/').pop())
+                : decodeURIComponent(song.url);
+
+            showRemixStatus('Deleting MP3 from R2...', 'blue');
+
+            s3.deleteObject({
+                Bucket: bucketName,
+                Key: r2Path
+            }, function (err, data) {
+                if (err) {
+                    alert('Failed to delete file from R2: ' + err.message);
+                    showRemixStatus('R2 delete failed', 'rose');
+                    return;
+                }
+
+                const rawIdx = remixCatalog.indexOf(song);
+                if (rawIdx !== -1) remixCatalog.splice(rawIdx, 1);
+
+                applyAllRemixFilters();
+
+                const jsonString = JSON.stringify(remixCatalog, null, 2);
+                s3.putObject({
+                    Bucket: bucketName,
+                    Key: 'remixes.json',
+                    Body: jsonString,
+                    ContentType: 'application/json'
+                }, function (pubErr, pubData) {
+                    if (pubErr) {
+                        showRemixStatus('Catalog sync failed', 'rose');
+                        return;
+                    }
+                    showRemixStatus('Track deleted and remixes.json updated!', 'emerald');
+                });
+            });
+        }
+
+        function clearAllRemixes() {
+            if (confirm('Are you sure you want to clear all remix tracks from the local list?')) {
+                remixCatalog = [];
+                filteredRemixCatalog = [];
+                currentRemixPage = 1;
+                renderRemixTable();
+            }
+        }
+
+        function renderRemixTable() {
+            const tbody = document.getElementById('remixTableBody');
+            const badge = document.getElementById('remixCountBadge');
+            const jsonPreview = document.getElementById('remixJsonPreview');
+            const pageInfoText = document.getElementById('remixPageInfoText');
+            const pageBadge = document.getElementById('remixPageBadge');
+            const prevBtn = document.getElementById('remixPrevPageBtn');
+            const nextBtn = document.getElementById('remixNextPageBtn');
+
+            badge.textContent = remixCatalog.length;
+            jsonPreview.textContent = JSON.stringify(remixCatalog, null, 2);
+
+            const total = filteredRemixCatalog.length;
+            const maxPage = Math.ceil(total / pageSize) || 1;
+            currentRemixPage = Math.max(1, Math.min(currentRemixPage, maxPage));
+
+            const startIdx = (currentRemixPage - 1) * pageSize;
+            const endIdx = Math.min(startIdx + pageSize, total);
+            const pageItems = filteredRemixCatalog.slice(startIdx, endIdx);
+
+            pageInfoText.textContent = total === 0
+                ? 'Showing 0 of 0'
+                : `Showing ${startIdx + 1}–${endIdx} of ${total}`;
+            pageBadge.textContent = `${currentRemixPage} / ${maxPage}`;
+
+            prevBtn.disabled = currentRemixPage <= 1;
+            nextBtn.disabled = currentRemixPage >= maxPage;
+
+            if (pageItems.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-4 py-10 text-center text-slate-400 text-xs">
+                            ${remixCatalog.length === 0 ? 'No remix tracks uploaded yet.' : 'No tracks match your filter.'}
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = pageItems.map((song, i) => {
+                const actualIndex = startIdx + i;
+                const displaySize = song.size ? formatBytes(song.size) : '--';
+                return `
+                <tr class="hover:bg-slate-100/80 transition">
+                    <td class="px-4 py-3 flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-cyan-100 text-cyan-700 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-compact-disc text-xs"></i>
+                        </div>
+                        <div class="font-semibold text-slate-900 text-xs">${song.title}</div>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-0.5 text-[10px] font-medium bg-cyan-50 text-cyan-700 rounded-md border border-cyan-200">${song.category}</span>
+                    </td>
+                    <td class="px-4 py-3 text-xs font-mono text-slate-500">
+                        ${displaySize}
+                    </td>
+                    <td class="px-4 py-3 font-mono text-[11px] text-slate-600 max-w-[200px] truncate" title="${decodeURIComponent(song.url)}">
+                        ${decodeURIComponent(song.url)}
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                        <div class="flex items-center justify-end gap-1.5">
+                            <button onclick="openEditRemixModal(${actualIndex})" class="p-1.5 bg-cyan-50 hover:bg-cyan-100 text-cyan-600 rounded-lg transition" title="Edit Details">
+                                <i class="fa-solid fa-pen-to-square text-xs"></i>
+                            </button>
+                            <button onclick="deleteRemix(${actualIndex})" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition" title="Delete Track">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `}).join('');
+        }
+
+        function showRemixStatus(msg, color) {
+            const el = document.getElementById('remixStatusMessage');
             el.textContent = msg;
             el.className = `text-xs font-medium text-${color}-600`;
         }
