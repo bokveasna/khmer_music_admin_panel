@@ -344,12 +344,6 @@
                             <span id="songCountBadge" class="ml-1 text-xs px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-700 border border-brand-200 font-mono">0</span>
                         </h2>
                     </div>
-
-                    <div class="flex items-center gap-2">
-                        <button onclick="clearAllSongs()" class="text-xs text-rose-600 hover:text-rose-700 transition flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-rose-50 border border-rose-200">
-                            <i class="fa-solid fa-trash-can"></i> Clear All
-                        </button>
-                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 mb-4 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
@@ -613,12 +607,6 @@
                             <i class="fa-solid fa-list-music text-cyan-600"></i> Remix Songs Catalog
                             <span id="remixCountBadge" class="ml-1 text-xs px-2.5 py-0.5 rounded-full bg-cyan-100 text-cyan-700 border border-cyan-200 font-mono">0</span>
                         </h2>
-                    </div>
-
-                    <div class="flex items-center gap-2">
-                        <button onclick="clearAllRemixes()" class="text-xs text-rose-600 hover:text-rose-700 transition flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-rose-50 border border-rose-200">
-                            <i class="fa-solid fa-trash-can"></i> Clear All
-                        </button>
                     </div>
                 </div>
 
@@ -2051,18 +2039,6 @@
             });
         }
 
-        function clearAllSongs() {
-            if (confirm('Are you sure you want to clear all songs from the catalog?')) {
-                songsCatalog = [];
-                filteredCatalog = [];
-                currentPage = 1;
-                updateDropdownLists();
-                populateSingerFilterDropdown();
-                renderSingersManager();
-                renderTable();
-            }
-        }
-
         function renderTable() {
             const tbody = document.getElementById('songsTableBody');
             const badge = document.getElementById('songCountBadge');
@@ -2584,15 +2560,6 @@
                     showRemixStatus('Track deleted and remixes.json updated!', 'emerald');
                 });
             });
-        }
-
-        function clearAllRemixes() {
-            if (confirm('Are you sure you want to clear all remix tracks from the local list?')) {
-                remixCatalog = [];
-                filteredRemixCatalog = [];
-                currentRemixPage = 1;
-                renderRemixTable();
-            }
         }
 
         function renderRemixTable() {
